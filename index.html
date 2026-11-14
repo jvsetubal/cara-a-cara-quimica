@@ -2427,7 +2427,6 @@
       if (gameOver) return;
 
       isMyTurn = (data.turn === myRole);
-      updateTurnUI();
 
       // Sincroniza conjunto de perguntas usadas no Firebase
       if (data.usedQuestions && Array.isArray(data.usedQuestions)) {
@@ -2438,6 +2437,62 @@
       if (data.log && Array.isArray(data.log)) {
         renderHistoryFromLogs(data.log);
       }
+
+      // TRATAMENTO DA PERGUNTA PENDENTE ONLINE (OS DOIS RESPONDEM COM CORREÇÃO)
+      if (data.pendingQuestion && !data.pendingQuestion.answered) {
+        // Se a pergunta foi feita pelo adversário e direcionada para mim responder
+        if (data.pendingQuestion.target === myRole) {
+          hideBlockOverlay();
+          openAnswerModal(data.pendingQuestion.qIndex, data.pendingQuestion.authorName || "Adversário", (validatedAnswerStr) => {
+            // Ao validar a resposta (mesmo com correção), escreve a resposta no Firebase
+            roomRef.update({
+              "pendingQuestion/answered": true,
+              "pendingQuestion/answer": validatedAnswerStr
+            });
+          });
+          return;
+        } else if (data.pendingQuestion.author === myRole) {
+          // O autor da pergunta vê o bloqueio enquanto aguarda o oponente responder
+          showBlockOverlay(
+            "Aguardando Resposta",
+            "O adversário está lendo e respondendo sua pergunta...",
+            "⏳"
+          );
+        }
+      } else if (data.pendingQuestion && data.pendingQuestion.answered) {
+        // A pergunta foi respondida pelo oponente!
+        if (data.pendingQuestion.author === myRole && !window._handledPendingAnswer) {
+          window._handledPendingAnswer = true;
+          const qText = data.pendingQuestion.questionText;
+          const aStr = data.pendingQuestion.answer;
+
+          hideBlockOverlay();
+          showMyQuestionBanner(qText, aStr);
+
+          // Salva log no Firebase e remove pendingQuestion, mantendo a vez do autor na fase de corte
+          roomRef.once("value").then(snapshot => {
+            const val = snapshot.val();
+            const currentLogs = val.log ? [...val.log] : [];
+            currentLogs.push({
+              player: myRole,
+              playerName: (myRole === "player1" ? "Jogador 1" : "Jogador 2"),
+              type: "question",
+              question: qText,
+              answer: aStr,
+              time: Date.now()
+            });
+
+            roomRef.update({
+              log: currentLogs,
+              pendingQuestion: null
+            });
+
+            enterPassTurnPhase();
+          });
+        }
+      }
+
+      updateTurnUI();
 
       if (data.guess && data.guess.correct) {
         handleOnlineFinished(data);
@@ -2848,40 +2903,32 @@
 
         enterPassTurnPhase();
       } else {
-        roomRef.once("value").then(snapshot => {
-          const val = snapshot.val();
-          const oppRole = (myRole === "player1" ? "player2" : "player1");
-          const oppSym = val[oppRole] ? val[oppRole].element : null;
-          const oppEl = ELEMENTS.find(e => e.sym === oppSym);
+        const oppRole = (myRole === "player1" ? "player2" : "player1");
+        window._handledPendingAnswer = false;
 
-          if (!oppEl) {
-            alert("Erro ao obter dados do adversário.");
-            return;
-          }
+        // Desabilita botões temporariamente
+        document.getElementById("btnAsk").disabled = true;
+        document.getElementById("btnToggleGuess").disabled = true;
 
-          const answerBool = oppEl.q[qIndex];
-          const answerStr = answerBool ? "SIM" : "NÃO";
-
-          showMyQuestionBanner(questionText, answerStr);
-
-          pushHistoryCard({
-            type: "player",
-            author: "VOCÊ",
-            question: questionText,
-            answer: answerStr
-          });
-
-          window._pendingOnlineLog = {
-            player: myRole,
-            playerName: (myRole === "player1" ? "Jogador 1" : "Jogador 2"),
-            type: "question",
-            question: questionText,
-            answer: answerStr,
-            time: Date.now()
-          };
-
-          enterPassTurnPhase();
+        // Envia pergunta pendente para o oponente responder no modal
+        roomRef.update({
+          pendingQuestion: {
+            author: myRole,
+            authorName: (myRole === "player1" ? "Jogador 1" : "Jogador 2"),
+            target: oppRole,
+            qIndex: qIndex,
+            questionText: questionText,
+            answered: false,
+            timestamp: Date.now()
+          },
+          usedQuestions: Array.from(usedQuestionsSet)
         });
+
+        showBlockOverlay(
+          "Pergunta Enviada!",
+          "Aguardando o adversário responder...",
+          "📨"
+        );
       }
     }
 
@@ -2980,22 +3027,21 @@
       if (gameMode === "local") {
         endLocalPlayerTurn();
       } else {
-        if (window._pendingOnlineLog) {
-          roomRef.once("value").then(snapshot => {
-            const val = snapshot.val();
-            const oppRole = (myRole === "player1" ? "player2" : "player1");
-            const currentLogs = val.log ? [...val.log] : [];
+        roomRef.once("value").then(snapshot => {
+          const val = snapshot.val();
+          const oppRole = (myRole === "player1" ? "player2" : "player1");
+          const currentLogs = val.log ? [...val.log] : [];
+          if (window._pendingOnlineLog) {
             currentLogs.push(window._pendingOnlineLog);
             window._pendingOnlineLog = null;
+          }
 
-            // Salva no Firebase a lista de perguntas usadas para sincronizar sem repetição
-            roomRef.update({
-              log: currentLogs,
-              usedQuestions: Array.from(usedQuestionsSet),
-              turn: oppRole
-            });
+          roomRef.update({
+            log: currentLogs,
+            usedQuestions: Array.from(usedQuestionsSet),
+            turn: oppRole
           });
-        }
+        });
       }
     }
 
