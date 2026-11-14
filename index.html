@@ -1,0 +1,3328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cara a Cara da Química - Local & Online</title>
+
+  <!-- Firebase Compat CDN -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --bg-main: #090d16;
+      --bg-card: #131b26;
+      --bg-card-hover: #1c2738;
+      --border-color: #243247;
+      --accent-cyan: #38bdf8;
+      --accent-purple: #a855f7;
+      --accent-green: #22c55e;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --eliminated-opacity: 0.22;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(180deg, rgba(19, 27, 38, 0.95) 0%, rgba(9, 13, 22, 0.9) 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 22px;
+      color: #090d16;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+    }
+
+    .brand h1 {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      background: linear-gradient(90deg, #38bdf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .room-badge {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid var(--accent-purple);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #d8b4fe;
+    }
+
+    .btn-copy {
+      background: #243247;
+      border: 1px solid #3b82f6;
+      color: #93c5fd;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-copy:hover {
+      background: #3b82f6;
+      color: #fff;
+    }
+
+    .turn-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      background: #172131;
+      border: 1px solid var(--border-color);
+    }
+
+    .turn-badge.player-turn {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+
+    .turn-badge.opp-turn {
+      background: rgba(168, 85, 247, 0.15);
+      border-color: var(--accent-purple);
+      color: #c084fc;
+      box-shadow: 0 0 12px rgba(168, 85, 247, 0.25);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 1.4s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    .btn-header {
+      background: #1e293b;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .btn-header:hover {
+      background: #334155;
+    }
+
+    /* Screen Views */
+    .screen {
+      display: none;
+      width: 100%;
+      flex: 1;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* Screen 1: Start Screen */
+    #screenStart {
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .welcome-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 580px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+
+    .welcome-card h2 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(90deg, #38bdf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .welcome-card p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    .mode-options {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .btn-mode {
+      background: #1a2436;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+
+    .btn-mode:hover {
+      border-color: var(--accent-cyan);
+      background: #24324a;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-mode.online:hover {
+      border-color: var(--accent-purple);
+    }
+
+    .mode-icon {
+      font-size: 32px;
+      width: 54px;
+      height: 54px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .btn-mode.online .mode-icon {
+      background: rgba(168, 85, 247, 0.12);
+    }
+
+    .mode-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text-main);
+    }
+
+    .mode-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Screen 2: Online Lobby */
+    #screenLobby {
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .lobby-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 34px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+    }
+
+    .lobby-card h2 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .lobby-card p {
+      color: var(--text-muted);
+      font-size: 13px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .lobby-section {
+      background: #0b111c;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .lobby-section-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--accent-cyan);
+      margin-bottom: 12px;
+    }
+
+    .lobby-input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .lobby-input {
+      flex: 1;
+      background: #131b26;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+    }
+
+    .lobby-input:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    /* Screen 3: Picking Screen & Waiting */
+    #screenPicking {
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      flex-direction: column;
+    }
+
+    .pick-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 26px;
+      max-width: 820px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+
+    .pick-status-msg {
+      background: rgba(168, 85, 247, 0.12);
+      border: 1px solid var(--accent-purple);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #e9d5ff;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 9px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 6px;
+      margin-bottom: 20px;
+    }
+
+    .pick-grid::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .pick-grid::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    .pick-card {
+      background: #0b111c;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .pick-card:hover {
+      border-color: var(--accent-cyan);
+      background: #172131;
+      transform: translateY(-2px);
+    }
+
+    .pick-card.selected {
+      border-color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.16);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+
+    .pick-symbol {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      line-height: 1.1;
+    }
+
+    .pick-name {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Screen 4: Main Gameplay Screen */
+    #screenGame {
+      flex-direction: row;
+      gap: 20px;
+      padding: 18px 24px;
+      max-width: 1700px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Board section */
+    .board-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .board-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      padding: 12px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    .secret-display {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .secret-chip {
+      background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(168,85,247,0.2));
+      border: 1px solid var(--accent-cyan);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .board-instructions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .elim-badge {
+      background: #0b111c;
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--accent-cyan);
+      font-weight: 700;
+    }
+
+    /* BANNER EXCLUSIVO NO TOPO DO TABULEIRO: APENAS A ÚLTIMA PERGUNTA QUE VOCÊ FEZ */
+    .info-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 10px;
+      padding: 11px 16px;
+      animation: bannerSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.15) 0%, rgba(19, 27, 38, 0.95) 100%);
+      border: 1px solid var(--accent-cyan);
+      box-shadow: 0 3px 18px rgba(56, 189, 248, 0.16);
+    }
+
+    @keyframes bannerSlideDown {
+      from { transform: translateY(-6px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .banner-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .banner-icon-badge {
+      font-size: 18px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(56, 189, 248, 0.22);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+    }
+
+    .banner-text-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .banner-title-text {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #38bdf8;
+    }
+
+    .banner-body-text {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 11px;
+    }
+
+    .element-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      overflow: hidden;
+      min-height: 120px;
+    }
+
+    .element-card:hover {
+      transform: translateY(-2px);
+      border-color: #58a6ff;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    }
+
+    .element-card.guess-mode {
+      border-color: var(--accent-amber);
+      animation: guessPulse 1.2s infinite alternate;
+    }
+
+    @keyframes guessPulse {
+      from { box-shadow: 0 0 5px rgba(245, 158, 11, 0.4); }
+      to { box-shadow: 0 0 16px rgba(245, 158, 11, 0.85); }
+    }
+
+    .element-card.eliminated {
+      opacity: var(--eliminated-opacity);
+      filter: grayscale(1) brightness(0.6);
+      border-color: #1e293b;
+    }
+
+    .element-card.eliminated::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -15%;
+      width: 130%;
+      height: 3px;
+      background: var(--accent-red);
+      transform: rotate(-25deg);
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+      z-index: 5;
+    }
+
+    .element-card.locked-eliminated {
+      cursor: not-allowed;
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .atomic-num {
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .card-symbol {
+      font-size: 32px;
+      font-weight: 800;
+      line-height: 1.1;
+      text-align: center;
+      margin: 4px 0 2px 0;
+      color: var(--text-main);
+    }
+
+    .card-name {
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      color: #e2e8f0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-meta {
+      font-size: 10px;
+      text-align: center;
+      color: var(--text-muted);
+      margin-top: 6px;
+      padding-top: 5px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* Category Badges */
+    .category-tag {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 1px 5px;
+      border-radius: 4px;
+      align-self: center;
+      margin-top: 4px;
+    }
+    .cat-noble { background: #3b2a59; color: #d8b4fe; }
+    .cat-metal { background: #1b354b; color: #7dd3fc; }
+    .cat-nonmetal { background: #1d4032; color: #86efac; }
+    .cat-transition { background: #452c1e; color: #fdba74; }
+    .cat-alkali { background: #4a1d2e; color: #f472b6; }
+
+    /* Right sidebar */
+    .sidebar {
+      width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .action-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    select.question-select {
+      background: #0b111c;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 11px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      width: 100%;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    select.question-select:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    button.btn-action {
+      background: #172131;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    button.btn-action:hover:not(:disabled) {
+      background: #243247;
+    }
+
+    button.btn-primary {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #fff;
+    }
+
+    button.btn-primary:hover:not(:disabled) {
+      background: #0369a1;
+    }
+
+    /* =========================================================================
+       BOTÃO DE PASSAR A VEZ REDESENHADO (PREMIUM / HIGH FIDELITY)
+       ========================================================================= */
+    .pass-turn-card {
+      background: linear-gradient(135deg, rgba(30, 27, 75, 0.6) 0%, rgba(19, 27, 38, 0.95) 100%);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .pass-turn-info {
+      font-size: 12.5px;
+      color: #e9d5ff;
+      line-height: 1.5;
+    }
+
+    .btn-pass-turn-premium {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 50%, #4f46e5 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      font-size: 14.5px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      padding: 15px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-pass-turn-premium::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+      animation: shineBtn 2.8s infinite;
+    }
+
+    @keyframes shineBtn {
+      0% { left: -100%; }
+      40%, 100% { left: 100%; }
+    }
+
+    .btn-pass-turn-premium:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(99, 102, 241, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      background: linear-gradient(135deg, #9333ea 0%, #7c3aed 50%, #4f46e5 100%);
+    }
+
+    .btn-pass-turn-premium:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    }
+
+    button.btn-guess {
+      background: #78350f;
+      border-color: var(--accent-amber);
+      color: #fef3c7;
+    }
+
+    button.btn-guess:hover:not(:disabled) {
+      background: #92400e;
+    }
+
+    button.btn-guess.active {
+      background: var(--accent-amber);
+      color: #000;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Histórico da Partida */
+    .log-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 290px;
+      max-height: 440px;
+    }
+
+    .history-filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 6px;
+      margin-top: 4px;
+    }
+
+    .history-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    .history-card {
+      background: #0b111c;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 11px 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.15s;
+      animation: slideIn 0.22s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .history-card.is-player {
+      border-left: 4px solid var(--accent-cyan);
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0.05) 0%, #0b111c 40%);
+    }
+
+    .history-card.is-opp {
+      border-left: 4px solid var(--accent-purple);
+      background: linear-gradient(90deg, rgba(168, 85, 247, 0.05) 0%, #0b111c 40%);
+    }
+
+    .history-card.is-system {
+      border-left: 4px solid var(--accent-amber);
+      background: #0b111c;
+    }
+
+    .history-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .history-author {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .author-badge {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    .author-badge.badge-player {
+      background: rgba(56, 189, 248, 0.18);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .author-badge.badge-opp {
+      background: rgba(168, 85, 247, 0.18);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.4);
+    }
+
+    .author-badge.badge-sys {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .history-timestamp {
+      font-size: 10px;
+      color: #64748b;
+    }
+
+    .history-content {
+      font-size: 13px;
+      color: #e2e8f0;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .history-question {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .history-answer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #131b26;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 5px 10px;
+      margin-top: 2px;
+    }
+
+    .history-answer-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .answer-tag {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 2px 10px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .ans-tag-yes {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border: 1px solid #166534;
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.2);
+    }
+
+    .ans-tag-no {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid #991b1b;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+    }
+
+    .ans-tag-guess-correct {
+      background: rgba(34, 197, 94, 0.25);
+      color: #4ade80;
+      border: 1px solid #22c55e;
+      font-weight: 900;
+    }
+
+    .ans-tag-guess-wrong {
+      background: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      border: 1px solid #ef4444;
+      font-weight: 900;
+    }
+
+    .guess-instruction-toast {
+      background: #78350f;
+      color: #fef3c7;
+      border: 1px solid var(--accent-amber);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+      animation: pulseToast 1s infinite alternate;
+    }
+
+    @keyframes pulseToast {
+      from { transform: scale(1); }
+      to { transform: scale(1.02); }
+    }
+
+    /* Tela de Bloqueio Temporária */
+    .turn-block-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(9, 13, 22, 0.88);
+      backdrop-filter: blur(6px);
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      border-radius: 12px;
+      animation: overlayFadeIn 0.25s ease-out;
+    }
+
+    @keyframes overlayFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .block-card {
+      background: #131b26;
+      border: 2px solid var(--accent-purple);
+      border-radius: 20px;
+      padding: 34px 40px;
+      text-align: center;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(168, 85, 247, 0.25);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .block-spinner-wrapper {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .block-spinner {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 4px solid rgba(168, 85, 247, 0.2);
+      border-top-color: var(--accent-purple);
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .block-icon {
+      font-size: 28px;
+    }
+
+    .block-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #f1f5f9;
+      letter-spacing: -0.3px;
+    }
+
+    .block-subtitle {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .block-progress-bar {
+      width: 100%;
+      height: 5px;
+      background: #1c2738;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .block-progress-inner {
+      height: 100%;
+      width: 40%;
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
+      border-radius: 10px;
+      animation: progressIndeterminate 1.8s ease-in-out infinite;
+    }
+
+    @keyframes progressIndeterminate {
+      0% { transform: translateX(-100%); width: 30%; }
+      50% { transform: translateX(100%); width: 65%; }
+      100% { transform: translateX(350%); width: 30%; }
+    }
+
+    /* Modal de Resposta Sim ou Não */
+    .answer-modal-card {
+      background: #131b26;
+      border: 2px solid var(--accent-cyan);
+      border-radius: 18px;
+      padding: 28px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.85);
+      animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .answer-modal-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .answer-modal-badge {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: rgba(168, 85, 247, 0.2);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.4);
+    }
+
+    .answer-prompt-box {
+      background: #0b111c;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .answer-prompt-question {
+      font-size: 17px;
+      font-weight: 800;
+      color: #f1f5f9;
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+
+    .answer-reminder-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid var(--accent-cyan);
+      padding: 3px 10px;
+      border-radius: 14px;
+      font-size: 12px;
+      color: var(--accent-cyan);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .answer-choice-btns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .btn-choose-yes {
+      background: rgba(34, 197, 94, 0.15);
+      border: 2px solid #22c55e;
+      color: #4ade80;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.18s;
+    }
+
+    .btn-choose-yes:hover {
+      background: #22c55e;
+      color: #090d16;
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-choose-no {
+      background: rgba(239, 68, 68, 0.15);
+      border: 2px solid #ef4444;
+      color: #f87171;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.18s;
+    }
+
+    .btn-choose-no:hover {
+      background: #ef4444;
+      color: #fff;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .answer-correction-box {
+      display: none;
+      background: rgba(239, 68, 68, 0.12);
+      border-left: 4px solid var(--accent-red);
+      padding: 14px;
+      border-radius: 0 8px 8px 0;
+      animation: slideIn 0.25s ease-out;
+    }
+
+    .correction-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #f87171;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .correction-explanation {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      line-height: 1.45;
+    }
+
+    /* Modal / Overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .modal-overlay.hidden {
+      display: none;
+    }
+
+    .modal-card {
+      background: #131b26;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+      animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: center;
+    }
+
+    @keyframes modalPop {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .winner-badge {
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .win-player {
+      background: rgba(34, 197, 94, 0.2);
+      border: 1px solid var(--accent-green);
+      color: #4ade80;
+    }
+
+    .win-opp {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--accent-red);
+      color: #f87171;
+    }
+
+    .elements-reveal-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .element-reveal-box {
+      background: #0b111c;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .reveal-sym {
+      font-size: 42px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #38bdf8, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.1;
+    }
+
+    .reveal-name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .reveal-details {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .fun-fact-box {
+      background: rgba(56, 189, 248, 0.08);
+      border-left: 3px solid var(--accent-cyan);
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 14px 0 22px 0;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .fun-fact-title {
+      font-weight: 700;
+      color: var(--accent-cyan);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    @media (max-width: 992px) {
+      #screenGame {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+      }
+      .board-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">⚛</div>
+      <div>
+        <h1>Cara a Cara da Química</h1>
+        <div style="font-size: 11px; color: var(--text-muted);" id="headerModeSubtitle">Modo Local vs Computador</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Online Room Badge -->
+      <div class="room-badge" id="onlineRoomBadge">
+        <span>SALA: <strong id="lblRoomCode">------</strong></span>
+        <button class="btn-copy" onclick="copyRoomLink()">Copiar Link</button>
+      </div>
+
+      <!-- Turn indicator -->
+      <div id="turnBadge" class="turn-badge player-turn" style="display: none;">
+        <span class="pulse-dot"></span>
+        <span id="turnText">Sua Vez</span>
+      </div>
+
+      <button class="btn-header" onclick="goToStartScreen()">Menu Principal</button>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       TELA 1: INÍCIO (SELETOR DE MODO)
+       ========================================================================= -->
+  <section id="screenStart" class="screen active">
+    <div class="welcome-card">
+      <h2>Cara a Cara Químico</h2>
+      <p>Descubra o elemento químico secreto do seu adversário através de <strong>30 perguntas estratégicas sem repetição</strong> de Sim ou Não. Quem adivinhar primeiro vence!</p>
+
+      <div class="mode-options">
+        <div class="btn-mode" onclick="startLocalFlow()">
+          <div class="mode-icon">🤖</div>
+          <div>
+            <div class="mode-title">Jogar Local (vs Computador)</div>
+            <div class="mode-desc">Enfrente a inteligência artificial com dedução por busca binária em tempo real.</div>
+          </div>
+        </div>
+
+        <div class="btn-mode online" onclick="startOnlineFlow()">
+          <div class="mode-icon">🌐</div>
+          <div>
+            <div class="mode-title">Jogar Online (2 Jogadores)</div>
+            <div class="mode-desc">Crie ou entre em uma sala privada sincronizada em tempo real via link compartilhável.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       TELA 2: LOBBY ONLINE (CRIAR OU ENTRAR EM SALA)
+       ========================================================================= -->
+  <section id="screenLobby" class="screen">
+    <div class="lobby-card">
+      <h2>Lobby Multijogador</h2>
+      <p>Conecte-se com um amigo criando uma nova sala ou informando o código da partida.</p>
+
+      <div class="lobby-section">
+        <div class="lobby-section-title">Opção A: Criar Nova Partida</div>
+        <p style="text-align: left; margin-bottom: 12px;">Gere um código exclusivo e envie o link para o segundo jogador.</p>
+        <button class="btn-action btn-primary" style="width: 100%; padding: 12px;" onclick="createOnlineRoom()">
+          <span>➕</span> Criar Sala Privada
+        </button>
+      </div>
+
+      <div class="lobby-section">
+        <div class="lobby-section-title">Opção B: Entrar em Sala Existente</div>
+        <div class="lobby-input-row">
+          <input type="text" id="inputRoomCode" class="lobby-input" placeholder="CÓDIGO (6 DÍGITOS)" maxlength="6">
+          <button class="btn-action" style="padding: 10px 18px;" onclick="joinOnlineRoomFromInput()">
+            Entrar
+          </button>
+        </div>
+      </div>
+
+      <div style="text-align: center;">
+        <button class="btn-header" onclick="showScreen('screenStart')">Voltar ao Início</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       TELA 3: SALA DE ESPERA / ESCOLHA DO ELEMENTO
+       ========================================================================= -->
+  <section id="screenPicking" class="screen">
+    <div class="pick-container">
+      <h2 id="pickHeading" style="font-size: 22px; font-weight: 800; margin-bottom: 6px;">Escolha seu Elemento Secreto</h2>
+      <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+        Selecione cuidadosamente o elemento que seu adversário terá que adivinhar.
+      </p>
+
+      <div id="pickStatusMsg" class="pick-status-msg" style="display: none;">
+        <span class="pulse-dot"></span>
+        <span id="pickStatusText">Aguardando o jogador 2 entrar na sala...</span>
+      </div>
+
+      <div class="pick-grid" id="pickGrid">
+        <!-- 30 Cards gerados via JS -->
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 12px; color: var(--text-muted);" id="pickSelectionLabel">
+          Nenhum elemento selecionado.
+        </div>
+        <button id="btnConfirmPick" class="btn-action btn-primary" style="padding: 11px 26px;" disabled onclick="confirmElementPick()">
+          Confirmar Elemento
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       TELA 4: TABULEIRO PRINCIPAL DE JOGO
+       ========================================================================= -->
+  <section id="screenGame" class="screen">
+
+    <!-- TELA DE BLOQUEIO TEMPORÁRIA (VEZ DO ADVERSÁRIO / IA) -->
+    <div id="turnBlockOverlay" class="turn-block-overlay">
+      <div class="block-card">
+        <div class="block-spinner-wrapper">
+          <div class="block-spinner"></div>
+          <div class="block-icon" id="blockIcon">🤖</div>
+        </div>
+        <div>
+          <div class="block-title" id="blockTitle">Vez da Inteligência Artificial</div>
+          <div class="block-subtitle" id="blockSubtitle">
+            A IA está analisando a tabela periódica e calculando a melhor pergunta...
+          </div>
+        </div>
+        <div class="block-progress-bar">
+          <div class="block-progress-inner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Esquerda: Tabuleiro de Elementos -->
+    <div class="board-container">
+      <div class="board-header">
+        <div class="secret-display">
+          <span style="font-size: 13px; color: var(--text-muted);">Seu Elemento:</span>
+          <div class="secret-chip">
+            <span id="mySecretSym">?</span>
+            <span id="mySecretName" style="font-weight: normal; color: #fff;"></span>
+          </div>
+        </div>
+
+        <div class="board-instructions">
+          <div class="elim-badge" id="elimBadge">Riscados: 0 / 30</div>
+          <span style="font-size: 12px; color: var(--text-muted);">
+            Desriscar é permitido <strong>apenas na mesma rodada</strong> em que foi riscado.
+          </span>
+        </div>
+      </div>
+
+      <!-- BANNER EXCLUSIVO NO TOPO DO TABULEIRO: APENAS A ÚLTIMA PERGUNTA QUE VOCÊ FEZ -->
+      <div id="bannerMyQuestion" class="info-banner">
+        <div class="banner-left">
+          <div class="banner-icon-badge">📤</div>
+          <div class="banner-text-group">
+            <div class="banner-title-text">Última pergunta que você fez:</div>
+            <div class="banner-body-text" id="myQuestionBody">"..."</div>
+          </div>
+        </div>
+        <div id="myQuestionAnswerBadge" style="margin-left: 14px;"></div>
+      </div>
+
+      <!-- Aviso para Modo Palpite -->
+      <div id="guessToast" class="guess-instruction-toast">
+        🎯 MODO PALPITE ATIVO: Clique na carta do elemento que você acredita ser do adversário!
+      </div>
+
+      <!-- Grade dos 30 Elementos -->
+      <div class="board-grid" id="boardGrid">
+        <!-- Gerado via JS -->
+      </div>
+    </div>
+
+    <!-- Direita: Controles e Histórico -->
+    <aside class="sidebar">
+      
+      <!-- Painel de Ações do Turno -->
+      <div class="panel">
+        <div class="panel-title">
+          <span>Ações da Rodada</span>
+          <span style="font-size: 11px; color: var(--accent-cyan);" id="turnRoleTag">Sua Vez de Jogar</span>
+        </div>
+
+        <!-- Bloco Padrão de Perguntas e Palpites (Fase de Ação) -->
+        <div id="actionControlsStandard" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="action-group">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <label style="font-size: 12px; color: var(--text-muted);">1. Escolha uma Pergunta (30 Disponíveis):</label>
+              <span id="availableQuestionsBadge" style="font-size: 11px; color: var(--accent-cyan); font-weight: 700;">30 restantes</span>
+            </div>
+            <select id="questionSelect" class="question-select">
+              <!-- 30 Perguntas sem repetição -->
+            </select>
+            <button id="btnAsk" class="btn-action btn-primary" onclick="handleAskQuestionAction()">
+              <span>❓</span> Fazer Pergunta
+            </button>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 8px; margin: 2px 0;">
+            <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+            <span style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">ou</span>
+            <div style="flex: 1; height: 1px; background: var(--border-color);"></div>
+          </div>
+
+          <div class="action-group">
+            <label style="font-size: 12px; color: var(--text-muted);">2. Tentar Adivinhar (Custa a Rodada):</label>
+            <button id="btnToggleGuess" class="btn-action btn-guess" onclick="toggleGuessMode()">
+              <span>🎯</span> <span id="guessBtnText">Fazer Palpite</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bloco Especial: Passar a Vez Obrigatório com Visual Premium -->
+        <div id="actionControlsPassTurn" style="display: none;">
+          <div class="pass-turn-card">
+            <div class="pass-turn-info">
+              ✂️ <strong>Fase de Corte:</strong> Risque agora no tabuleiro os elementos descartados com a resposta que você recebeu.<br><br>
+              Quando terminar de eliminar suas cartas, clique abaixo para <strong>passar a vez</strong>. A IA só fará a pergunta dela após você passar!
+            </div>
+
+            <button class="btn-pass-turn-premium" onclick="handleConfirmPassTurn()">
+              <span>➔</span> Passar a Vez para o Adversário
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painel de Histórico Redesenhado -->
+      <div class="panel log-panel">
+        <div class="panel-title">
+          <span>Histórico da Partida</span>
+          <span id="logCount" style="font-size: 11px; color: var(--text-muted);">0 eventos</span>
+        </div>
+
+        <div class="history-filter-bar">
+          <span>Perguntas e respostas sem repetição</span>
+          <span style="font-size: 10px; color: var(--accent-cyan);">Tempo Real</span>
+        </div>
+
+        <div class="history-list" id="historyList">
+          <!-- Cards de Histórico gerados via JS -->
+        </div>
+      </div>
+
+    </aside>
+  </section>
+
+  <!-- =========================================================================
+       MODAL DE INTERATIVIDADE: VOCÊ RESPONDE SIM OU NÃO AO ADVERSÁRIO / IA
+       ========================================================================= -->
+  <div id="answerModal" class="modal-overlay hidden">
+    <div class="answer-modal-card">
+      <div class="answer-modal-header">
+        <span class="answer-modal-badge" id="modalAuthorBadge">IA PERGUNTOU</span>
+        <span style="font-size: 12px; color: var(--text-muted);">Responda com base no seu elemento</span>
+      </div>
+
+      <div class="answer-prompt-box">
+        <div class="answer-reminder-chip">
+          <span>Seu elemento:</span>
+          <strong id="modalMySecretName">Hidrogênio (H)</strong>
+        </div>
+        <div class="answer-prompt-question" id="modalQuestionText">
+          "É um metal?"
+        </div>
+      </div>
+
+      <div style="font-size: 12px; color: var(--text-muted); text-align: center;">
+        Como você responde para o adversário?
+      </div>
+
+      <div class="answer-choice-btns" id="answerChoiceBtns">
+        <button class="btn-choose-yes" onclick="submitPlayerResponse(true)">
+          <span>✓</span> SIM
+        </button>
+        <button class="btn-choose-no" onclick="submitPlayerResponse(false)">
+          <span>✗</span> NÃO
+        </button>
+      </div>
+
+      <!-- Box de Correção com Explicação Química quando o jogador errar -->
+      <div id="answerCorrectionBox" class="answer-correction-box">
+        <div class="correction-title">
+          <span>⚠️</span> Resposta Incorreta! Correção Científica:
+        </div>
+        <div class="correction-explanation" id="correctionExplanationText">
+          <!-- Explicação preenchida via JS -->
+        </div>
+        <div style="margin-top: 10px; text-align: right;">
+          <button class="btn-action btn-primary" style="padding: 6px 16px; font-size: 12px;" onclick="confirmCorrectionAndProceed()">
+            Entendi, Prosseguir ➔
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL DE VITÓRIA / FIM DE JOGO
+       ========================================================================= -->
+  <div id="victoryModal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div id="winBadge" class="winner-badge win-player">Vitória!</div>
+      <h2 id="winTitle" style="font-size: 24px; margin-bottom: 6px;">Elemento Revelado!</h2>
+      <p id="winSubtitle" style="color: var(--text-muted); font-size: 14px;">A partida foi concluída.</p>
+
+      <div class="elements-reveal-container">
+        <!-- Jogador / Você -->
+        <div class="element-reveal-box">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;" id="revealP1Label">Você</div>
+          <div class="reveal-sym" id="revealP1Sym">?</div>
+          <div class="reveal-name" id="revealP1Name">-</div>
+          <div class="reveal-details" id="revealP1Details">-</div>
+        </div>
+
+        <!-- Adversário -->
+        <div class="element-reveal-box">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;" id="revealP2Label">Adversário</div>
+          <div class="reveal-sym" id="revealP2Sym">?</div>
+          <div class="reveal-name" id="revealP2Name">-</div>
+          <div class="reveal-details" id="revealP2Details">-</div>
+        </div>
+      </div>
+
+      <div class="fun-fact-box">
+        <div class="fun-fact-title">
+          <span>💡</span> Curiosidade Química do Elemento Vencedor
+        </div>
+        <div id="revealFact">Carregando curiosidade...</div>
+      </div>
+
+      <div style="display: flex; justify-content: center; gap: 12px;">
+        <button class="btn-action btn-primary" style="padding: 11px 32px;" onclick="goToStartScreen()">
+          Voltar ao Menu Principal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       JAVASCRIPT: CONFIGURAÇÃO, ELEMENTOS, FIREBASE E JOGABILIDADE
+       ========================================================================= -->
+  <script>
+    /* ==========================================================================
+       CONFIGURAÇÃO DO FIREBASE (RTDB)
+       ========================================================================== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzfBJErql4XVpIugcE4lpHgh3ycO6wQgs",
+      authDomain: "jogo-de-quimica-d12ca.firebaseapp.com",
+      databaseURL: "https://jogo-de-quimica-d12ca-default-rtdb.firebaseio.com",
+      projectId: "jogo-de-quimica-d12ca",
+      storageBucket: "jogo-de-quimica-d12ca.firebasestorage.app",
+      messagingSenderId: "779776318748",
+      appId: "1:779776318748:web:cd1457a0dd344680486ed9"
+    };
+
+    let db = null;
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      db = firebase.database();
+    } catch (e) {
+      console.warn("Firebase não inicializado:", e);
+    }
+
+    /* ==========================================================================
+       LISTA DE 30 PERGUNTAS PRÉ-DEFINIDAS
+       ========================================================================== */
+    const QUESTIONS = [
+      "Ocorre naturalmente na Terra?",                                        // 0
+      "É um metal?",                                                          // 1
+      "É um não-metal?",                                                      // 2
+      "É um semimetal?",                                                      // 3
+      "É um gás nobre?",                                                      // 4
+      "É um metal de transição?",                                             // 5
+      "Pertence ao grupo 1 ou 2?",                                            // 6
+      "Está no período 1, 2 ou 3?",                                           // 7
+      "Tem mais de 20 prótons?",                                              // 8
+      "Sua massa atômica é maior que 50?",                                    // 9
+      "É sólido à temperatura ambiente?",                                     // 10
+      "É líquido à temperatura ambiente?",                                    // 11
+      "É gasoso à temperatura ambiente?",                                     // 12
+      "É encontrado no ar atmosférico?",                                      // 13
+      "É encontrado no mar ou na água do mar?",                               // 14
+      "É encontrado no corpo humano?",                                        // 15
+      "É radioativo?",                                                        // 16
+      "Reage com água?",                                                      // 17
+      "Tem propriedades magnéticas?",                                         // 18
+      "É extraído de minérios metálicos?",                                    // 19
+      "É um dos elementos mais abundantes na crosta terrestre?",              // 20
+      "É usado em construção civil?",                                         // 21
+      "É usado em eletrônicos ou tecnologia?",                                // 22
+      "É usado em embalagens ou utensílios domésticos?",                       // 23
+      "É usado como combustível ou fonte de energia?",                        // 24
+      "É usado em baterias ou pilhas?",                                       // 25
+      "É usado na medicina ou farmácia?",                                     // 26
+      "Tem alguma aplicação na indústria alimentícia?",                       // 27
+      "Faz parte da composição do sal de cozinha ou fertilizantes?",          // 28
+      "É usado na fabricação de lâmpadas ou iluminação?"                      // 29
+    ];
+
+    const CATEGORY_NAMES = {
+      "metal": "Metal",
+      "noble": "Gás Nobre",
+      "non-metal": "Não-metal",
+      "transition": "Transição",
+      "alkali": "Alcalino"
+    };
+
+    /* ==========================================================================
+       LISTA DOS 30 ELEMENTOS COM DADOS BOOLEANOS COMPLETOS PARA AS 30 PERGUNTAS
+       ========================================================================== */
+    const ELEMENTS = [
+      {
+        sym: "H", name: "Hidrogênio", num: 1, mass: 1.008, group: 1, period: 1, cat: "non-metal",
+        q: [true, false, true, false, false, false, true, true, false, false, false, false, true, true, true, true, false, false, false, false, false, false, true, false, true, true, true, true, true, false],
+        fact: "O Hidrogênio compõe cerca de 75% de toda a massa bariônica do universo e é o combustível que alimenta o brilho do Sol!"
+      },
+      {
+        sym: "He", name: "Hélio", num: 2, mass: 4.0026, group: 18, period: 1, cat: "noble",
+        q: [true, false, true, false, true, false, false, true, false, false, false, false, true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, true],
+        fact: "O Hélio é o único elemento que não solidifica sob resfriamento comum à pressão atmosférica, exigindo pressões extremas."
+      },
+      {
+        sym: "Li", name: "Lítio", num: 3, mass: 6.94, group: 1, period: 2, cat: "alkali",
+        q: [true, true, false, false, false, false, true, true, false, false, true, false, false, false, true, true, false, true, false, true, false, false, true, false, false, true, true, false, false, false],
+        fact: "O Lítio é o metal mais leve da tabela periódica, capaz de flutuar tanto em água quanto em óleo mineral!"
+      },
+      {
+        sym: "C", name: "Carbono", num: 6, mass: 12.011, group: 14, period: 2, cat: "non-metal",
+        q: [true, false, true, false, false, false, false, true, false, false, true, false, false, true, true, true, false, false, false, false, false, true, true, true, true, true, true, true, true, false],
+        fact: "Toda a química da vida orgânica na Terra é baseada no Carbono, elemento formador tanto do grafite macio quanto do diamante duro."
+      },
+      {
+        sym: "N", name: "Nitrogênio", num: 7, mass: 14.007, group: 15, period: 2, cat: "non-metal",
+        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, false, false, false, false, false, true, true, false, false, true, true, true, true],
+        fact: "O gás Nitrogênio compõe aproximadamente 78% do ar que respiramos, diluindo o oxigênio e estabilizando a atmosfera."
+      },
+      {
+        sym: "O", name: "Oxigênio", num: 8, mass: 15.999, group: 16, period: 2, cat: "non-metal",
+        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, false, true, false, true, false, true, false, true, false, true, true, false, false],
+        fact: "Em estado líquido ou sólido, o oxigênio possui uma marcante tonalidade azul clara e é atraído por campos magnéticos."
+      },
+      {
+        sym: "F", name: "Flúor", num: 9, mass: 18.998, group: 17, period: 2, cat: "non-metal",
+        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, true, false, false, false, false, true, true, false, false, true, false, false, false],
+        fact: "O Flúor é o elemento químico mais reativo e mais eletronegativo de toda a tabela periódica, atacando até mesmo o vidro!"
+      },
+      {
+        sym: "Ne", name: "Neônio", num: 10, mass: 20.180, group: 18, period: 2, cat: "noble",
+        q: [true, false, true, false, true, false, false, true, false, false, false, false, true, true, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, true],
+        fact: "A luminescência elétrica original do gás Neônio é puramente vermelho-alaranjada; outras cores em luminosos usam gases distintos."
+      },
+      {
+        sym: "Na", name: "Sódio", num: 11, mass: 22.990, group: 1, period: 3, cat: "alkali",
+        q: [true, true, false, false, false, false, true, true, false, false, true, false, false, false, true, true, false, true, false, false, true, false, true, false, false, true, true, true, true, true],
+        fact: "O símbolo 'Na' vem do latim 'Natrium'. Embora reaja explosivamente com água, é indispensável na dieta diária no sal (NaCl)."
+      },
+      {
+        sym: "Mg", name: "Magnésio", num: 12, mass: 24.305, group: 2, period: 3, cat: "metal",
+        q: [true, true, false, false, false, false, true, true, false, false, true, false, false, false, true, true, false, true, false, true, true, true, true, true, false, true, true, true, true, true],
+        fact: "No coração de cada molécula de clorofila nas plantas há um átomo de magnésio, tornando a fotossíntese do planeta possível!"
+      },
+      {
+        sym: "Al", name: "Alumínio", num: 13, mass: 26.982, group: 13, period: 3, cat: "metal",
+        q: [true, true, false, false, false, false, false, true, false, false, true, false, false, false, true, false, false, false, false, true, true, true, true, true, false, false, true, false, false, false],
+        fact: "No século XIX, o alumínio puro era considerado mais nobre e custoso que o ouro pela tremenda dificuldade de refinamento na época."
+      },
+      {
+        sym: "Si", name: "Silício", num: 14, mass: 28.085, group: 14, period: 3, cat: "semimetal",
+        q: [true, false, false, true, false, false, false, true, false, false, true, false, false, false, true, true, false, false, false, false, true, true, true, true, false, true, true, false, false, false],
+        fact: "O silício é a espinha dorsal de chips de computador e células solares, tendo batizado o famoso 'Vale do Silício' na Califórnia."
+      },
+      {
+        sym: "P", name: "Fósforo", num: 15, mass: 30.974, group: 15, period: 3, cat: "non-metal",
+        q: [true, false, true, false, false, false, false, true, false, false, true, false, false, false, true, true, false, false, false, false, false, false, true, true, false, true, true, true, true, false],
+        fact: "Descoberto em 1669 por um alquimista a partir de urina concentrada, o fósforo branco brilha no escuro em contato com o ar."
+      },
+      {
+        sym: "S", name: "Enxofre", num: 16, mass: 32.06, group: 16, period: 3, cat: "non-metal",
+        q: [true, false, true, false, false, false, false, true, false, false, true, false, false, true, true, true, false, false, false, false, false, false, true, false, false, true, true, true, true, false],
+        fact: "O enxofre sólido cristalino é inodoro; o clássico cheiro desagradável de ovo podre pertence ao gás sulfeto de hidrogênio (H2S)."
+      },
+      {
+        sym: "Cl", name: "Cloro", num: 17, mass: 35.45, group: 17, period: 3, cat: "non-metal",
+        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, true, false, false, false, false, true, false, false, false, true, true, true, false],
+        fact: "O gás cloro é verde-amarelado e sufocante, mas quando combinado com sódio forma o sal de cozinha que consumimos todos os dias."
+      },
+      {
+        sym: "Ar", name: "Argônio", num: 18, mass: 39.948, group: 18, period: 3, cat: "noble",
+        q: [true, false, true, false, true, false, false, true, false, false, false, false, true, true, true, false, false, false, false, false, false, false, true, false, false, false, true, false, false, true],
+        fact: "Seu nome vem da palavra grega 'argos' (inativo/lento), descrevendo a sua quase nula reatividade química na natureza."
+      },
+      {
+        sym: "K", name: "Potássio", num: 19, mass: 39.098, group: 1, period: 4, cat: "alkali",
+        q: [true, true, false, false, false, false, true, false, false, false, true, false, false, false, true, true, false, true, false, false, true, false, true, false, false, true, true, true, true, false],
+        fact: "O símbolo 'K' remonta a 'Kalium'. O potássio é um íon vital para o cérebro transmitir pulsos elétricos entre os neurônios."
+      },
+      {
+        sym: "Ca", name: "Cálcio", num: 20, mass: 40.078, group: 2, period: 4, cat: "metal",
+        q: [true, true, false, false, false, false, true, false, false, false, true, false, false, false, true, true, false, true, false, true, true, true, false, false, false, false, true, true, true, true],
+        fact: "O cálcio é o quinto elemento mais abundante no corpo humano, essencial na ossatura, dentes e contração dos músculos cardíacos."
+      },
+      {
+        sym: "Fe", name: "Ferro", num: 26, mass: 55.845, group: 8, period: 4, cat: "transition",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, true, true, true, true, true, true, true, false, false, true, true, false, false],
+        fact: "O Ferro é o estágio final da fusão de núcleos em estrelas massivas; após produzir ferro, a estrela colapsa em uma supernova!"
+      },
+      {
+        sym: "Cu", name: "Cobre", num: 29, mass: 63.546, group: 11, period: 4, cat: "transition",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, false, false, true, false, true, true, true, false, false, true, false, false, false],
+        fact: "O cobre possui ação bactericida instantânea natural: microorganismos que entram em contato com superfícies de cobre morrem rápido."
+      },
+      {
+        sym: "Zn", name: "Zinco", num: 30, mass: 65.38, group: 12, period: 4, cat: "transition",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, false, false, true, false, true, true, true, false, true, true, true, true, false],
+        fact: "O zinco é usado no aço galvanizado como metal de sacrifício, impedindo que pontes e veículos oxidem sob a chuva."
+      },
+      {
+        sym: "Br", name: "Bromo", num: 35, mass: 79.904, group: 17, period: 4, cat: "non-metal",
+        q: [true, false, true, false, false, false, false, false, true, true, false, true, false, true, true, true, false, true, false, false, false, false, true, false, false, false, true, false, false, false],
+        fact: "O Bromo é um dos únicos dois elementos líquidos em temperatura e pressão ambiente normais (o outro é o mercúrio)!"
+      },
+      {
+        sym: "Ag", name: "Prata", num: 47, mass: 107.868, group: 11, period: 5, cat: "transition",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, false, false, false, false, true, false, false, true, true, false, true, true, false, false, false],
+        fact: "A prata ostenta a maior condutividade elétrica e térmica de qualquer metal conhecido na face da Terra."
+      },
+      {
+        sym: "I", name: "Iodo", num: 53, mass: 126.904, group: 17, period: 5, cat: "non-metal",
+        q: [true, false, true, false, false, false, false, false, true, true, true, false, false, false, true, true, false, false, false, false, false, false, true, false, false, false, true, true, true, true],
+        fact: "Sob leve aquecimento, cristais sólidos escuros de iodo sublimam diretamente em um deslumbrante vapor violeta escuro."
+      },
+      {
+        sym: "Ba", name: "Bário", num: 56, mass: 137.327, group: 2, period: 6, cat: "metal",
+        q: [true, true, false, false, false, false, true, false, true, true, true, false, false, false, true, false, false, true, false, true, false, false, true, false, false, false, true, false, false, true],
+        fact: "O sulfato de bário é ingerido como contraste em exames de raio-X do aparelho digestivo para realçar imagens diagnósticas."
+      },
+      {
+        sym: "Au", name: "Ouro", num: 79, mass: 196.967, group: 11, period: 6, cat: "transition",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, false, false, false, false, true, false, false, true, true, false, false, true, true, false, false],
+        fact: "O ouro é tão maleável e dúctil que apenas 28 gramas podem ser esticadas em um fio condutor com mais de 80 quilômetros!"
+      },
+      {
+        sym: "Hg", name: "Mercúrio", num: 80, mass: 200.592, group: 12, period: 6, cat: "transition",
+        q: [true, true, false, false, false, true, false, false, true, true, false, true, false, true, true, false, false, false, false, true, false, false, true, false, false, true, true, false, false, true],
+        fact: "Conhecido outrora como 'prata viva', o mercúrio é o único metal puro líquido à temperatura ambiente."
+      },
+      {
+        sym: "Pb", name: "Chumbo", num: 82, mass: 207.2, group: 14, period: 6, cat: "metal",
+        q: [true, true, false, false, false, false, false, false, true, true, true, false, false, false, true, true, false, false, false, true, false, true, true, false, false, true, true, false, false, false],
+        fact: "O símbolo 'Pb' deriva de 'Plumbum', termo romano que deu origem às palavras modernas 'plumber' e 'encanamento'."
+      },
+      {
+        sym: "U", name: "Urânio", num: 92, mass: 238.029, group: 3, period: 7, cat: "metal",
+        q: [true, true, false, false, false, false, false, false, true, true, true, false, false, false, true, false, true, true, false, true, false, false, false, false, true, false, true, false, false, false],
+        fact: "Um único quilograma de Urânio-235 pode produzir energia equivalente à combustão de mais de 20 milhões de quilos de carvão!"
+      },
+      {
+        sym: "Kr", name: "Criptônio", num: 36, mass: 83.798, group: 18, period: 4, cat: "noble",
+        q: [true, false, true, false, true, false, false, false, true, true, false, false, true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, true],
+        fact: "Durante anos, o metro foi definido cientificamente como 1.650.763,73 comprimentos de onda da luz emitida pelo Criptônio-86."
+      }
+    ];
+
+    /* ==========================================================================
+       ESTADO GERAL DA APLICAÇÃO
+       ========================================================================== */
+    let gameMode = "local"; // "local" | "online"
+    let myRole = "player1"; // "player1" | "player2" (online)
+    let roomCode = null;
+    let roomRef = null;
+
+    let mySecret = null;
+    let opponentSecret = null; // local = CPU
+    let isMyTurn = false;
+    let isGuessMode = false;
+    let gameOver = false;
+    let currentRoundNumber = 1;
+
+    // Controle de eliminação com trava para rodadas anteriores
+    let elementEliminatedRound = {};
+
+    // CONJUNTO DE PERGUNTAS JÁ UTILIZADAS (SEM REPETIÇÃO PARA AMBOS OS JOGADORES)
+    let usedQuestionsSet = new Set();
+
+    let tempSelectedElement = null;
+    let localHistory = [];
+
+    // Pergunta pendente para o modal de resposta
+    let currentPendingQuestion = null;
+
+    // Estado do CPU
+    let cpuCandidates = [];
+
+    /* ==========================================================================
+       NAVEGAÇÃO DE TELAS
+       ========================================================================== */
+    function showScreen(screenId) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      const target = document.getElementById(screenId);
+      if (target) target.classList.add("active");
+
+      const turnBadge = document.getElementById("turnBadge");
+      const roomBadge = document.getElementById("onlineRoomBadge");
+      const subTitle = document.getElementById("headerModeSubtitle");
+
+      if (screenId === "screenStart") {
+        turnBadge.style.display = "none";
+        roomBadge.style.display = "none";
+        subTitle.textContent = "Dedução da Tabela Periódica";
+        hideBlockOverlay();
+        hideBanner();
+        hideAnswerModal();
+      } else if (screenId === "screenLobby") {
+        turnBadge.style.display = "none";
+        roomBadge.style.display = "none";
+        subTitle.textContent = "Lobby Multijogador Online";
+        hideBlockOverlay();
+        hideBanner();
+        hideAnswerModal();
+      } else if (screenId === "screenPicking") {
+        turnBadge.style.display = "none";
+        subTitle.textContent = gameMode === "online" ? `Partida Online (${roomCode})` : "Modo Local vs Computador";
+        if (gameMode === "online") roomBadge.style.display = "flex";
+        hideBlockOverlay();
+        hideBanner();
+        hideAnswerModal();
+      } else if (screenId === "screenGame") {
+        turnBadge.style.display = "flex";
+        if (gameMode === "online") roomBadge.style.display = "flex";
+      }
+    }
+
+    function goToStartScreen() {
+      if (roomRef) {
+        roomRef.off();
+        roomRef = null;
+      }
+      roomCode = null;
+      gameOver = false;
+      hideBlockOverlay();
+      hideBanner();
+      hideAnswerModal();
+      document.getElementById("victoryModal").classList.add("hidden");
+      window.history.replaceState({}, document.title, window.location.pathname);
+      showScreen("screenStart");
+    }
+
+    /* ==========================================================================
+       INICIALIZAÇÃO & VERIFICAÇÃO DE URL (?room=XXXXXX)
+       ========================================================================== */
+    window.onload = () => {
+      populateQuestionSelect();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlRoom = urlParams.get("room");
+      if (urlRoom && urlRoom.trim().length === 6) {
+        autoJoinFromUrl(urlRoom.trim().toUpperCase());
+      }
+    };
+
+    /* POPULA O SELECT EXCLUINDO PERGUNTAS JÁ UTILIZADAS */
+    function populateQuestionSelect() {
+      const qSelect = document.getElementById("questionSelect");
+      const prevSelected = qSelect.value;
+      qSelect.innerHTML = "";
+
+      let availableCount = 0;
+
+      QUESTIONS.forEach((q, idx) => {
+        // Se a pergunta já foi usada por qualquer um dos jogadores, ela NÃO aparece
+        if (!usedQuestionsSet.has(idx)) {
+          availableCount++;
+          const opt = document.createElement("option");
+          opt.value = idx;
+          opt.textContent = `${idx + 1}. ${q}`;
+          qSelect.appendChild(opt);
+        }
+      });
+
+      const badge = document.getElementById("availableQuestionsBadge");
+      if (badge) {
+        badge.textContent = `${availableCount} restantes`;
+      }
+
+      if (availableCount === 0) {
+        const opt = document.createElement("option");
+        opt.value = "-1";
+        opt.textContent = "Todas as 30 perguntas foram usadas!";
+        qSelect.appendChild(opt);
+        document.getElementById("btnAsk").disabled = true;
+      } else {
+        if (prevSelected && !usedQuestionsSet.has(parseInt(prevSelected))) {
+          qSelect.value = prevSelected;
+        }
+      }
+    }
+
+    /* ==========================================================================
+       FLUXO LOCAL (vs CPU)
+       ========================================================================== */
+    function startLocalFlow() {
+      gameMode = "local";
+      myRole = "player1";
+      document.getElementById("headerModeSubtitle").textContent = "Modo Local vs Computador";
+      preparePickingScreen("Escolha seu Elemento Secreto", false, "");
+    }
+
+    /* ==========================================================================
+       FLUXO ONLINE (FIREBASE)
+       ========================================================================== */
+    function startOnlineFlow() {
+      if (!db) {
+        alert("Erro ao conectar com Firebase. Verifique sua conexão com a internet.");
+        return;
+      }
+      gameMode = "online";
+      showScreen("screenLobby");
+    }
+
+    function generateRoomCode() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    function createOnlineRoom() {
+      const code = generateRoomCode();
+      roomCode = code;
+      myRole = "player1";
+
+      const roomData = {
+        player1: { name: "Jogador 1", ready: false, element: null },
+        player2: { name: "Jogador 2", ready: false, element: null },
+        turn: "player1",
+        status: "waiting",
+        log: [],
+        usedQuestions: [],
+        guess: null,
+        created: Date.now()
+      };
+
+      roomRef = db.ref("rooms/" + roomCode);
+      roomRef.set(roomData).then(() => {
+        setupOnlineRoomListener();
+        updateRoomUrl(roomCode);
+        preparePickingScreen(`Sala Criada: ${roomCode}`, true, "Aguardando jogador 2 entrar pelo link...");
+      }).catch(err => {
+        alert("Erro ao criar sala: " + err.message);
+      });
+    }
+
+    function joinOnlineRoomFromInput() {
+      const input = document.getElementById("inputRoomCode").value.trim().toUpperCase();
+      if (input.length !== 6) {
+        alert("Por favor, digite um código de sala válido com 6 caracteres.");
+        return;
+      }
+      joinOnlineRoom(input);
+    }
+
+    function autoJoinFromUrl(code) {
+      gameMode = "online";
+      joinOnlineRoom(code);
+    }
+
+    function joinOnlineRoom(code) {
+      if (!db) return;
+      roomCode = code;
+      roomRef = db.ref("rooms/" + roomCode);
+
+      roomRef.once("value").then(snapshot => {
+        const val = snapshot.val();
+        if (!val) {
+          alert("Sala não encontrada. Verifique o código e tente novamente.");
+          showScreen("screenLobby");
+          return;
+        }
+
+        if (val.status === "finished") {
+          alert("Esta partida já foi finalizada.");
+          showScreen("screenLobby");
+          return;
+        }
+
+        myRole = "player2";
+        updateRoomUrl(roomCode);
+
+        roomRef.update({
+          status: "picking",
+          "player2/name": "Jogador 2"
+        });
+
+        setupOnlineRoomListener();
+        preparePickingScreen(`Entrou na Sala: ${roomCode}`, true, "Sala encontrada! Escolha seu elemento secreto.");
+      }).catch(err => {
+        alert("Erro ao entrar na sala: " + err.message);
+      });
+    }
+
+    function updateRoomUrl(code) {
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?room=" + code;
+      window.history.replaceState({ path: newUrl }, "", newUrl);
+      document.getElementById("lblRoomCode").textContent = code;
+      document.getElementById("onlineRoomBadge").style.display = "flex";
+    }
+
+    function copyRoomLink() {
+      const url = window.location.protocol + "//" + window.location.host + window.location.pathname + "?room=" + roomCode;
+      navigator.clipboard.writeText(url).then(() => {
+        alert("Link copiado para a área de transferência:\n" + url);
+      }).catch(() => {
+        prompt("Copie o link da sala:", url);
+      });
+    }
+
+    /* ==========================================================================
+       LISTENER DE SINCRONIZAÇÃO EM TEMPO REAL (FIREBASE)
+       ========================================================================== */
+    function setupOnlineRoomListener() {
+      if (!roomRef) return;
+
+      roomRef.on("value", snapshot => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        if (data.status === "waiting") {
+          const statusBox = document.getElementById("pickStatusMsg");
+          const statusText = document.getElementById("pickStatusText");
+          statusBox.style.display = "flex";
+          statusText.textContent = "Aguardando jogador 2 entrar na sala...";
+        } else if (data.status === "picking") {
+          const statusBox = document.getElementById("pickStatusMsg");
+          const statusText = document.getElementById("pickStatusText");
+          statusBox.style.display = "flex";
+
+          const p1Ready = data.player1 && data.player1.ready;
+          const p2Ready = data.player2 && data.player2.ready;
+
+          if (myRole === "player1" && !p2Ready) {
+            statusText.textContent = p1Ready ? "Jogador 2 conectado! Aguardando a escolha dele..." : "Jogador 2 conectado! Escolha seu elemento.";
+          } else if (myRole === "player2" && !p1Ready) {
+            statusText.textContent = p2Ready ? "Aguardando Jogador 1 confirmar o elemento..." : "Ambos conectados! Escolha seu elemento.";
+          }
+
+          if (p1Ready && p2Ready && myRole === "player1") {
+            roomRef.update({ status: "playing" });
+          }
+        } else if (data.status === "playing") {
+          if (document.getElementById("screenPicking").classList.contains("active")) {
+            startOnlineMatch(data);
+          } else {
+            syncOnlineGame(data);
+          }
+        } else if (data.status === "finished") {
+          if (!gameOver) {
+            handleOnlineFinished(data);
+          }
+        }
+      });
+    }
+
+    /* ==========================================================================
+       PREPARAÇÃO DA TELA DE ESCOLHA
+       ========================================================================== */
+    function preparePickingScreen(title, isOnline, statusText) {
+      document.getElementById("pickHeading").textContent = title;
+      const statusBox = document.getElementById("pickStatusMsg");
+      const statusLbl = document.getElementById("pickStatusText");
+      const confirmBtn = document.getElementById("btnConfirmPick");
+      confirmBtn.disabled = true;
+      tempSelectedElement = null;
+      document.getElementById("pickSelectionLabel").textContent = "Nenhum elemento selecionado.";
+
+      if (isOnline) {
+        statusBox.style.display = "flex";
+        statusLbl.textContent = statusText;
+      } else {
+        statusBox.style.display = "none";
+      }
+
+      const grid = document.getElementById("pickGrid");
+      grid.innerHTML = "";
+
+      ELEMENTS.forEach(el => {
+        const card = document.createElement("div");
+        card.className = "pick-card";
+        card.innerHTML = `
+          <div style="font-size: 10px; color: var(--text-muted);">${el.num}</div>
+          <div class="pick-symbol">${el.sym}</div>
+          <div class="pick-name">${el.name}</div>
+        `;
+        card.onclick = () => {
+          document.querySelectorAll(".pick-card").forEach(c => c.classList.remove("selected"));
+          card.classList.add("selected");
+          tempSelectedElement = el;
+          document.getElementById("pickSelectionLabel").innerHTML = `Selecionado: <strong>${el.name} (${el.sym})</strong>`;
+          confirmBtn.disabled = false;
+        };
+        grid.appendChild(card);
+      });
+
+      showScreen("screenPicking");
+    }
+
+    function confirmElementPick() {
+      if (!tempSelectedElement) return;
+      mySecret = tempSelectedElement;
+
+      if (gameMode === "local") {
+        const randIdx = Math.floor(Math.random() * ELEMENTS.length);
+        opponentSecret = ELEMENTS[randIdx];
+        startLocalMatch();
+      } else {
+        const updates = {};
+        updates[`${myRole}/element`] = mySecret.sym;
+        updates[`${myRole}/ready`] = true;
+        document.getElementById("btnConfirmPick").disabled = true;
+        document.getElementById("btnConfirmPick").textContent = "Aguardando Oponente...";
+        roomRef.update(updates);
+      }
+    }
+
+    /* ==========================================================================
+       INÍCIO DA PARTIDA (LOCAL & ONLINE)
+       ========================================================================== */
+    function startLocalMatch() {
+      gameOver = false;
+      isMyTurn = true;
+      isGuessMode = false;
+      currentRoundNumber = 1;
+      elementEliminatedRound = {};
+      usedQuestionsSet.clear();
+      cpuCandidates = [...ELEMENTS];
+      localHistory = [];
+
+      document.getElementById("mySecretSym").textContent = mySecret.sym;
+      document.getElementById("mySecretName").textContent = `(${mySecret.name})`;
+      document.getElementById("victoryModal").classList.add("hidden");
+      hideBanner();
+      hideAnswerModal();
+
+      renderBoard();
+      populateQuestionSelect();
+      updateTurnUI();
+      updateElimBadge();
+
+      clearHistoryUI();
+      pushHistoryCard({
+        type: "system",
+        author: "SISTEMA",
+        title: "Partida Iniciada",
+        content: `Seu elemento secreto é <strong>${mySecret.name} (${mySecret.sym})</strong>. O computador já definiu o dele.`
+      });
+
+      showScreen("screenGame");
+    }
+
+    function startOnlineMatch(data) {
+      gameOver = false;
+      isGuessMode = false;
+      currentRoundNumber = 1;
+      elementEliminatedRound = {};
+      usedQuestionsSet.clear();
+      localHistory = [];
+
+      document.getElementById("mySecretSym").textContent = mySecret.sym;
+      document.getElementById("mySecretName").textContent = `(${mySecret.name})`;
+      document.getElementById("victoryModal").classList.add("hidden");
+      hideBanner();
+      hideAnswerModal();
+
+      renderBoard();
+      populateQuestionSelect();
+      updateElimBadge();
+      clearHistoryUI();
+
+      pushHistoryCard({
+        type: "system",
+        author: "SISTEMA",
+        title: "Partida Online Iniciada",
+        content: `Ambos os jogadores confirmaram seus elementos. Boa dedução!`
+      });
+
+      syncOnlineGame(data);
+      showScreen("screenGame");
+    }
+
+    /* ==========================================================================
+       SINCRONIZAÇÃO ONLINE
+       ========================================================================== */
+    function syncOnlineGame(data) {
+      if (gameOver) return;
+
+      isMyTurn = (data.turn === myRole);
+      updateTurnUI();
+
+      // Sincroniza conjunto de perguntas usadas no Firebase
+      if (data.usedQuestions && Array.isArray(data.usedQuestions)) {
+        usedQuestionsSet = new Set(data.usedQuestions);
+        populateQuestionSelect();
+      }
+
+      if (data.log && Array.isArray(data.log)) {
+        renderHistoryFromLogs(data.log);
+      }
+
+      if (data.guess && data.guess.correct) {
+        handleOnlineFinished(data);
+      }
+    }
+
+    function handleOnlineFinished(data) {
+      gameOver = true;
+      hideBlockOverlay();
+      hideAnswerModal();
+      const guess = data.guess;
+      const p1Sym = data.player1 ? data.player1.element : null;
+      const p2Sym = data.player2 ? data.player2.element : null;
+
+      const p1Obj = ELEMENTS.find(e => e.sym === p1Sym) || { sym: "?", name: "Desconhecido", fact: "" };
+      const p2Obj = ELEMENTS.find(e => e.sym === p2Sym) || { sym: "?", name: "Desconhecido", fact: "" };
+
+      const winnerRole = guess ? guess.player : (data.turn === "player1" ? "player2" : "player1");
+      const isWinner = (winnerRole === myRole);
+      const winningElement = (winnerRole === "player1" ? p2Obj : p1Obj);
+
+      showVictoryScreen(isWinner, p1Obj, p2Obj, winningElement, (winnerRole === "player1" ? "Jogador 1" : "Jogador 2"));
+    }
+
+    /* ==========================================================================
+       TABULEIRO & REGRA DE ELIMINAÇÃO (DESRISCAR APENAS NA MESMA RODADA)
+       ========================================================================== */
+    function renderBoard() {
+      const grid = document.getElementById("boardGrid");
+      grid.innerHTML = "";
+
+      ELEMENTS.forEach(el => {
+        const card = document.createElement("div");
+        card.className = "element-card";
+        card.id = `card-${el.sym}`;
+
+        const isEliminated = !!elementEliminatedRound[el.sym];
+        const eliminatedInPastRound = isEliminated && (elementEliminatedRound[el.sym] < currentRoundNumber);
+
+        if (isEliminated) {
+          card.classList.add("eliminated");
+          if (eliminatedInPastRound) {
+            card.classList.add("locked-eliminated");
+          }
+        }
+
+        if (isGuessMode && !isEliminated) {
+          card.classList.add("guess-mode");
+        }
+
+        let catClass = "cat-metal";
+        if (el.cat === "noble") catClass = "cat-noble";
+        else if (el.cat === "non-metal") catClass = "cat-nonmetal";
+        else if (el.cat === "transition") catClass = "cat-transition";
+        else if (el.cat === "alkali") catClass = "cat-alkali";
+
+        card.innerHTML = `
+          <div class="card-top">
+            <span class="atomic-num">${el.num}</span>
+            <span>${el.mass.toFixed(1)}</span>
+          </div>
+          <div class="card-symbol">${el.sym}</div>
+          <div class="card-name">${el.name}</div>
+          <div class="category-tag ${catClass}">${CATEGORY_NAMES[el.cat] || el.cat}</div>
+          <div class="card-meta">P:${el.period} • G:${el.group}</div>
+        `;
+
+        card.onclick = () => onBoardCardClicked(el);
+        grid.appendChild(card);
+      });
+    }
+
+    function onBoardCardClicked(el) {
+      if (gameOver) return;
+
+      if (isGuessMode) {
+        submitGuessAction(el);
+        return;
+      }
+
+      const isEliminated = !!elementEliminatedRound[el.sym];
+
+      if (isEliminated) {
+        const roundWhenEliminated = elementEliminatedRound[el.sym];
+        if (roundWhenEliminated === currentRoundNumber) {
+          delete elementEliminatedRound[el.sym];
+          updateCardVisual(el.sym);
+          updateElimBadge();
+        } else {
+          alert(`O elemento ${el.name} foi riscado em uma rodada anterior (Rodada ${roundWhenEliminated}) e não pode mais ser desriscado!`);
+        }
+      } else {
+        elementEliminatedRound[el.sym] = currentRoundNumber;
+        updateCardVisual(el.sym);
+        updateElimBadge();
+      }
+    }
+
+    function updateCardVisual(sym) {
+      const card = document.getElementById(`card-${sym}`);
+      if (!card) return;
+      const isEliminated = !!elementEliminatedRound[sym];
+      const eliminatedInPastRound = isEliminated && (elementEliminatedRound[sym] < currentRoundNumber);
+
+      if (isEliminated) {
+        card.classList.add("eliminated");
+        if (eliminatedInPastRound) {
+          card.classList.add("locked-eliminated");
+        } else {
+          card.classList.remove("locked-eliminated");
+        }
+        card.classList.remove("guess-mode");
+      } else {
+        card.classList.remove("eliminated");
+        card.classList.remove("locked-eliminated");
+        if (isGuessMode) card.classList.add("guess-mode");
+      }
+    }
+
+    function updateElimBadge() {
+      const count = Object.keys(elementEliminatedRound).length;
+      document.getElementById("elimBadge").textContent = `Riscados: ${count} / 30`;
+    }
+
+    /* ==========================================================================
+       TELA DE BLOQUEIO TEMPORÁRIA
+       ========================================================================== */
+    function showBlockOverlay(title, subtitle, icon) {
+      if (gameOver) return;
+      const overlay = document.getElementById("turnBlockOverlay");
+      document.getElementById("blockTitle").textContent = title;
+      document.getElementById("blockSubtitle").textContent = subtitle;
+      document.getElementById("blockIcon").textContent = icon || "⏳";
+      overlay.style.display = "flex";
+    }
+
+    function hideBlockOverlay() {
+      const overlay = document.getElementById("turnBlockOverlay");
+      if (overlay) overlay.style.display = "none";
+    }
+
+    /* ==========================================================================
+       BANNER ÚNICO NO TOPO DO TABULEIRO: APENAS A ÚLTIMA PERGUNTA QUE VOCÊ FEZ
+       ========================================================================= */
+    function showMyQuestionBanner(questionText, answerText) {
+      const banner = document.getElementById("bannerMyQuestion");
+      const body = document.getElementById("myQuestionBody");
+      const badge = document.getElementById("myQuestionAnswerBadge");
+
+      body.textContent = `"${questionText}"`;
+      const isYes = (answerText === "SIM" || answerText === "CORRETO!");
+      const isGuess = (answerText === "CORRETO!" || answerText === "INCORRETO");
+
+      if (isGuess) {
+        badge.innerHTML = `<span class="answer-tag ${isYes ? 'ans-tag-guess-correct' : 'ans-tag-guess-wrong'}">${isYes ? '🎉 CORRETO!' : '❌ INCORRETO'}</span>`;
+      } else {
+        badge.innerHTML = `<span class="answer-tag ${isYes ? 'ans-tag-yes' : 'ans-tag-no'}">${isYes ? '✓ SIM' : '✗ NÃO'}</span>`;
+      }
+
+      banner.style.display = "flex";
+    }
+
+    function hideBanner() {
+      document.getElementById("bannerMyQuestion").style.display = "none";
+    }
+
+    /* ==========================================================================
+       MODAL DE RESPOSTA DO JOGADOR (SIM / NÃO COM CORREÇÃO E EXPLICAÇÃO)
+       ========================================================================= */
+    function openAnswerModal(qIndex, authorName, onFinished) {
+      currentPendingQuestion = {
+        qIndex: qIndex,
+        questionText: QUESTIONS[qIndex],
+        authorName: authorName,
+        onFinished: onFinished
+      };
+
+      document.getElementById("modalAuthorBadge").textContent = `${authorName.toUpperCase()} PERGUNTOU`;
+      document.getElementById("modalMySecretName").textContent = `${mySecret.name} (${mySecret.sym})`;
+      document.getElementById("modalQuestionText").textContent = `"${QUESTIONS[qIndex]}"`;
+
+      document.getElementById("answerChoiceBtns").style.display = "grid";
+      document.getElementById("answerCorrectionBox").style.display = "none";
+
+      document.getElementById("answerModal").classList.remove("hidden");
+    }
+
+    function hideAnswerModal() {
+      document.getElementById("answerModal").classList.add("hidden");
+    }
+
+    function submitPlayerResponse(chosenBool) {
+      if (!currentPendingQuestion) return;
+
+      const qIndex = currentPendingQuestion.qIndex;
+      const realBool = mySecret.q[qIndex];
+
+      if (chosenBool === realBool) {
+        hideAnswerModal();
+        const answerStr = realBool ? "SIM" : "NÃO";
+        if (currentPendingQuestion.onFinished) {
+          currentPendingQuestion.onFinished(answerStr);
+        }
+      } else {
+        document.getElementById("answerChoiceBtns").style.display = "none";
+        const correctionBox = document.getElementById("answerCorrectionBox");
+        const explanationEl = document.getElementById("correctionExplanationText");
+
+        const realStr = realBool ? "SIM" : "NÃO";
+        const chosenStr = chosenBool ? "SIM" : "NÃO";
+        const explanation = getScientificExplanation(mySecret, qIndex, realBool);
+
+        explanationEl.innerHTML = `
+          Você respondeu <strong>${chosenStr}</strong>, mas a resposta correta para o <strong>${mySecret.name} (${mySecret.sym})</strong> é <strong style="color: ${realBool ? '#4ade80' : '#f87171'};">${realStr}</strong>.<br><br>
+          <em>${explanation}</em>
+        `;
+
+        correctionBox.style.display = "block";
+      }
+    }
+
+    function confirmCorrectionAndProceed() {
+      hideAnswerModal();
+      if (!currentPendingQuestion) return;
+      const realBool = mySecret.q[currentPendingQuestion.qIndex];
+      const answerStr = realBool ? "SIM" : "NÃO";
+      if (currentPendingQuestion.onFinished) {
+        currentPendingQuestion.onFinished(answerStr);
+      }
+    }
+
+    function getScientificExplanation(el, qIdx, realBool) {
+      switch (qIdx) {
+        case 0: // Ocorre naturalmente na Terra?
+          return realBool
+            ? `O ${el.name} é um elemento primordial ou com ocorrência natural comprovada na Terra.`
+            : `O ${el.name} é puramente sintético ou extremamente efêmero na natureza terrestre.`;
+        case 1: // É um metal?
+          return realBool
+            ? `O ${el.name} é classificado como metal devido ao seu brilho característico, maleabilidade e condutividade elétrica e térmica.`
+            : `O ${el.name} não é um metal; é classificado como não-metal (ametal), semimetal ou gás nobre.`;
+        case 2: // É um não-metal?
+          return realBool
+            ? `O ${el.name} é classificado como não-metal (ametal ou gás nobre), com alta eletronegatividade e baixa condutividade.`
+            : `O ${el.name} não é um não-metal; trata-se de um metal ou semimetal.`;
+        case 3: // É um semimetal?
+          return realBool
+            ? `O ${el.name} (Si) é classicamente classificado como semimetal (metaloide), com propriedades intermediárias entre metais e ametais.`
+            : `O ${el.name} não é um semimetal; é categorizado como metal legítimo ou ametal/gás nobre.`;
+        case 4: // É um gás nobre?
+          return realBool
+            ? `O ${el.name} pertence à família 18 (gases nobres), apresentando camada de valência completa e baixíssima reatividade química.`
+            : `O ${el.name} situa-se no grupo ${el.group}, não sendo um gás nobre da família 18.`;
+        case 5: // É um metal de transição?
+          return realBool
+            ? `O ${el.name} pertence aos grupos 3 a 12 (bloco d), sendo um metal de transição típico.`
+            : `O ${el.name} situa-se no grupo ${el.group}, não pertencendo aos metais de transição do bloco d.`;
+        case 6: // Pertence ao grupo 1 ou 2?
+          return realBool
+            ? `O ${el.name} pertence à família ${el.group} da tabela periódica (metais alcalinos ou alcalino-terrosos / H).`
+            : `O ${el.name} situa-se no grupo ${el.group}, fora dos grupos 1 e 2.`;
+        case 7: // Está no período 1, 2 ou 3?
+          return realBool
+            ? `O ${el.name} situa-se no ${el.period}º período da tabela periódica (possui ${el.period} camadas de elétrons).`
+            : `O ${el.name} situa-se no ${el.period}º período (possui ${el.period} camadas de elétrons), portanto fora dos períodos 1 a 3.`;
+        case 8: // Tem mais de 20 prótons?
+          return realBool
+            ? `O número atômico (Z) do ${el.name} é ${el.num}, o que significa que ele tem ${el.num} prótons no núcleo (mais que 20).`
+            : `O número atômico (Z) do ${el.name} é ${el.num}, logo possui 20 ou menos prótons.`;
+        case 9: // Sua massa atômica é maior que 50?
+          return realBool
+            ? `A massa atômica média do ${el.name} é ${el.mass.toFixed(1)} u, sendo maior que 50 u.`
+            : `A massa atômica média do ${el.name} é de apenas ${el.mass.toFixed(1)} u (menor ou igual a 50 u).`;
+        case 10: // É sólido à temperatura ambiente?
+          return realBool
+            ? `À temperatura ambiente (25°C e 1 atm), o ponto de fusão do ${el.name} faz com que ele se encontre no estado sólido.`
+            : `À temperatura ambiente de 25°C, o ${el.name} encontra-se no estado gasoso ou líquido.`;
+        case 11: // É líquido à temperatura ambiente?
+          return realBool
+            ? `O ${el.name} é uma notável raridade da natureza: é um dos pouquíssimos elementos líquidos a 25°C e 1 atm!`
+            : `O ${el.name} não é líquido à temperatura ambiente (encontra-se sólido ou gasoso).`;
+        case 12: // É gasoso à temperatura ambiente?
+          return realBool
+            ? `À temperatura ambiente de 25°C e 1 atm, o ${el.name} encontra-se naturalmente no estado gasoso.`
+            : `À temperatura ambiente de 25°C, o ${el.name} encontra-se no estado sólido ou líquido.`;
+        case 13: // É encontrado no ar atmosférico?
+          return realBool
+            ? `O ${el.name} está presente na composição dos gases do ar atmosférico ou vapores naturais da Terra.`
+            : `O ${el.name} não é um componente volátil natural do ar atmosférico.`;
+        case 14: // É encontrado no mar ou na água do mar?
+          return realBool
+            ? `O ${el.name} é encontrado na água marinha, seja como constituinte da própria molécula de água ou como íon dissolvido no oceano.`
+            : `O ${el.name} é um gás nobre insolúvel que praticamente não está dissolvido ou retido na água do mar.`;
+        case 15: // É encontrado no corpo humano?
+          return realBool
+            ? `O ${el.name} faz parte da biologia humana (estruturas celulares, biomoléculas, ossos, eletrólitos ou micronutrientes essenciais).`
+            : `O ${el.name} não integra as funções nem os tecidos biológicos naturais do corpo humano.`;
+        case 16: // É radioativo?
+          return realBool
+            ? `O ${el.name} (Z=${el.num}) é instável e emite partículas e radiação através de decaimento nuclear contínuo.`
+            : `O ${el.name} possui isótopos estáveis e não é considerado um elemento radioativo natural perigoso.`;
+        case 17: // Reage com água?
+          return realBool
+            ? `O ${el.name} reage diretamente com água (sob contato ou temperatura adequada), liberando gases ou formando compostos hidratados/ácidos/bases.`
+            : `O ${el.name} é quimicamente inerte ou resistente à ação direta da água em condições comuns.`;
+        case 18: // Tem propriedades magnéticas?
+          return realBool
+            ? `O ${el.name} exibe forte magnetismo característico (ferromagnetismo proeminente no Ferro, ou paramagnetismo no Oxigênio líquido).`
+            : `O ${el.name} é diamagnético ou não exibe propriedades magnéticas marcantes no cotidiano.`;
+        case 19: // É extraído de minérios metálicos?
+          return realBool
+            ? `O ${el.name} é minerado e refinado comercialmente a partir de jazidas e minérios minerais da crosta terrestre.`
+            : `O ${el.name} é obtido diretamente da atmosfera, por condensação de gases, ou de fontes não-metálicas.`;
+        case 20: // É um dos elementos mais abundantes na crosta terrestre?
+          return realBool
+            ? `O ${el.name} figura entre os 8 elementos mais abundantes que compõem praticamente 98% da crosta terrestre!`
+            : `O ${el.name} é um elemento de abundância intermediária ou traço na crosta terrestre.`;
+        case 21: // É usado em construção civil?
+          return realBool
+            ? `O ${el.name} é intensamente empregado na engenharia e construção civil (concreto, vigas estruturais, argamassas, fiação ou tubulações).`
+            : `O ${el.name} não é um insumo representativo utilizado na construção civil.`;
+        case 22: // É usado em eletrônicos ou tecnologia?
+          return realBool
+            ? `O ${el.name} possui papel crucial na tecnologia moderna (semicondutores, circuitos, fiações, soldas, baterias ou displays).`
+            : `O ${el.name} tem aplicação exclusivamente não-eletrônica.`;
+        case 23: // É usado em embalagens ou utensílios domésticos?
+          return realBool
+            ? `O ${el.name} está presente na fabricação de panelas, latas, garrafas, folhas metálicas, plásticos ou utensílios domésticos.`
+            : `O ${el.name} não costuma ser aplicado diretamente na produção de embalagens ou utensílios domésticos.`;
+        case 24: // É usado como combustível ou fonte de energia?
+          return realBool
+            ? `O ${el.name} atua diretamente como combustível (foguetes/veículos), comburente essencial ou combustível nuclear em usinas de energia.`
+            : `O ${el.name} não atua diretamente como fonte de combustível primário de energia.`;
+        case 25: // É usado em baterias ou pilhas?
+          return realBool
+            ? `O ${el.name} é utilizado nos eletrodos, eletrólitos ou componentes de baterias modernas e pilhas eletroquímicas.`
+            : `O ${el.name} não integra composições usuais de baterias ou pilhas elétricas.`;
+        case 26: // É usado na medicina ou farmácia?
+          return realBool
+            ? `O ${el.name} possui ampla aplicação farmacêutica, médica ou hospitalar (remédios, contrastes, antissépticos ou gases terapêuticos).`
+            : `O ${el.name} não possui uso médico ou terapêutico significativo.`;
+        case 27: // Tem alguma aplicação na indústria alimentícia?
+          return realBool
+            ? `O ${el.name} é utilizado no processamento de alimentos, conservação, aditivos, suplementação nutricional ou embalagens alimentares.`
+            : `O ${el.name} não possui uso aprovado ou comum na indústria de alimentos.`;
+        case 28: // Faz parte da composição do sal de cozinha ou fertilizantes?
+          return realBool
+            ? `O ${el.name} é um dos constituintes essenciais do sal de cozinha (NaCl) ou dos principais fertilizantes agrícolas (NPK, sulfatos, calagem).`
+            : `O ${el.name} não entra na composição do sal de cozinha nem nos adubos e fertilizantes agrícolas comuns.`;
+        case 29: // É usado na fabricação de lâmpadas ou iluminação?
+          return realBool
+            ? `O ${el.name} é empregado no preenchimento de lâmpadas de descarga, vapores luminosos, letreiros ou filamentos de iluminação.`
+            : `O ${el.name} não é utilizado na confecção de lâmpadas ou fontes de iluminação.`;
+        default:
+          return `Propriedade confirmada pelas características químicas e industriais do elemento ${el.name}.`;
+      }
+    }
+
+    /* ==========================================================================
+       AÇÕES DO TURNO E FASE DE CORTE / PASSAR A VEZ
+       ========================================================================== */
+    function toggleGuessMode() {
+      if (!isMyTurn || gameOver) return;
+
+      isGuessMode = !isGuessMode;
+      const btn = document.getElementById("btnToggleGuess");
+      const toast = document.getElementById("guessToast");
+
+      if (isGuessMode) {
+        btn.classList.add("active");
+        document.getElementById("guessBtnText").textContent = "Cancelar Palpite";
+        toast.style.display = "block";
+      } else {
+        btn.classList.remove("active");
+        document.getElementById("guessBtnText").textContent = "Fazer Palpite";
+        toast.style.display = "none";
+      }
+      renderBoard();
+    }
+
+    function handleAskQuestionAction() {
+      if (!isMyTurn || gameOver) return;
+
+      const qIndex = parseInt(document.getElementById("questionSelect").value);
+      if (qIndex === -1 || usedQuestionsSet.has(qIndex)) {
+        alert("Esta pergunta já foi utilizada ou não há perguntas disponíveis!");
+        return;
+      }
+
+      const questionText = QUESTIONS[qIndex];
+
+      // MARCA A PERGUNTA COMO USADA GLOBALMENTE (SEM REPETIÇÃO)
+      usedQuestionsSet.add(qIndex);
+      populateQuestionSelect();
+
+      if (gameMode === "local") {
+        const answerBool = opponentSecret.q[qIndex];
+        const answerStr = answerBool ? "SIM" : "NÃO";
+
+        showMyQuestionBanner(questionText, answerStr);
+
+        pushHistoryCard({
+          type: "player",
+          author: "VOCÊ",
+          question: questionText,
+          answer: answerStr
+        });
+
+        enterPassTurnPhase();
+      } else {
+        roomRef.once("value").then(snapshot => {
+          const val = snapshot.val();
+          const oppRole = (myRole === "player1" ? "player2" : "player1");
+          const oppSym = val[oppRole] ? val[oppRole].element : null;
+          const oppEl = ELEMENTS.find(e => e.sym === oppSym);
+
+          if (!oppEl) {
+            alert("Erro ao obter dados do adversário.");
+            return;
+          }
+
+          const answerBool = oppEl.q[qIndex];
+          const answerStr = answerBool ? "SIM" : "NÃO";
+
+          showMyQuestionBanner(questionText, answerStr);
+
+          pushHistoryCard({
+            type: "player",
+            author: "VOCÊ",
+            question: questionText,
+            answer: answerStr
+          });
+
+          window._pendingOnlineLog = {
+            player: myRole,
+            playerName: (myRole === "player1" ? "Jogador 1" : "Jogador 2"),
+            type: "question",
+            question: questionText,
+            answer: answerStr,
+            time: Date.now()
+          };
+
+          enterPassTurnPhase();
+        });
+      }
+    }
+
+    function submitGuessAction(guessedElement) {
+      isGuessMode = false;
+      document.getElementById("btnToggleGuess").classList.remove("active");
+      document.getElementById("guessBtnText").textContent = "Fazer Palpite";
+      document.getElementById("guessToast").style.display = "none";
+
+      if (gameMode === "local") {
+        const isCorrect = (guessedElement.sym === opponentSecret.sym);
+
+        showMyQuestionBanner(`Palpite: ${guessedElement.name} (${guessedElement.sym})`, isCorrect ? "CORRETO!" : "INCORRETO");
+
+        pushHistoryCard({
+          type: "player",
+          author: "VOCÊ",
+          isGuess: true,
+          guessElement: `${guessedElement.name} (${guessedElement.sym})`,
+          answer: isCorrect ? "CORRETO!" : "INCORRETO"
+        });
+
+        if (isCorrect) {
+          setTimeout(() => {
+            showVictoryScreen(true, mySecret, opponentSecret, opponentSecret, "Você");
+          }, 1200);
+        } else {
+          enterPassTurnPhase();
+        }
+      } else {
+        roomRef.once("value").then(snapshot => {
+          const val = snapshot.val();
+          const oppRole = (myRole === "player1" ? "player2" : "player1");
+          const oppSym = val[oppRole] ? val[oppRole].element : null;
+          const isCorrect = (guessedElement.sym === oppSym);
+
+          showMyQuestionBanner(`Palpite: ${guessedElement.name} (${guessedElement.sym})`, isCorrect ? "CORRETO!" : "INCORRETO");
+
+          pushHistoryCard({
+            type: "player",
+            author: "VOCÊ",
+            isGuess: true,
+            guessElement: `${guessedElement.name} (${guessedElement.sym})`,
+            answer: isCorrect ? "CORRETO!" : "INCORRETO"
+          });
+
+          if (isCorrect) {
+            const currentLogs = val.log ? [...val.log] : [];
+            currentLogs.push({
+              player: myRole,
+              playerName: (myRole === "player1" ? "Jogador 1" : "Jogador 2"),
+              type: "guess",
+              guessElement: `${guessedElement.name} (${guessedElement.sym})`,
+              answer: "CORRETO!",
+              time: Date.now()
+            });
+
+            roomRef.update({
+              log: currentLogs,
+              guess: { player: myRole, element: guessedElement.sym, correct: true },
+              status: "finished"
+            });
+          } else {
+            window._pendingOnlineLog = {
+              player: myRole,
+              playerName: (myRole === "player1" ? "Jogador 1" : "Jogador 2"),
+              type: "guess",
+              guessElement: `${guessedElement.name} (${guessedElement.sym})`,
+              answer: "INCORRETO",
+              time: Date.now()
+            };
+            enterPassTurnPhase();
+          }
+        });
+      }
+    }
+
+    // FASE DE CORTE / PASSAR A VEZ
+    function enterPassTurnPhase() {
+      document.getElementById("actionControlsStandard").style.display = "none";
+      document.getElementById("actionControlsPassTurn").style.display = "flex";
+      document.getElementById("turnRoleTag").textContent = "Fase de Corte (Risque suas cartas)";
+    }
+
+    function exitPassTurnPhase() {
+      document.getElementById("actionControlsStandard").style.display = "flex";
+      document.getElementById("actionControlsPassTurn").style.display = "none";
+    }
+
+    function handleConfirmPassTurn() {
+      exitPassTurnPhase();
+
+      currentRoundNumber++;
+      renderBoard(); // trava desriscar de rodadas anteriores
+
+      if (gameMode === "local") {
+        endLocalPlayerTurn();
+      } else {
+        if (window._pendingOnlineLog) {
+          roomRef.once("value").then(snapshot => {
+            const val = snapshot.val();
+            const oppRole = (myRole === "player1" ? "player2" : "player1");
+            const currentLogs = val.log ? [...val.log] : [];
+            currentLogs.push(window._pendingOnlineLog);
+            window._pendingOnlineLog = null;
+
+            // Salva no Firebase a lista de perguntas usadas para sincronizar sem repetição
+            roomRef.update({
+              log: currentLogs,
+              usedQuestions: Array.from(usedQuestionsSet),
+              turn: oppRole
+            });
+          });
+        }
+      }
+    }
+
+    /* ==========================================================================
+       LÓGICA DO COMPUTADOR (30 PERGUNTAS SEM REPETIÇÃO)
+       ========================================================================== */
+    function endLocalPlayerTurn() {
+      if (gameOver) return;
+      isMyTurn = false;
+      updateTurnUI();
+
+      showBlockOverlay(
+        "Vez da Inteligência Artificial",
+        "A IA está analisando as propriedades químicas e formulando uma pergunta...",
+        "🤖"
+      );
+
+      setTimeout(() => {
+        runCpuTurn();
+      }, 2600);
+    }
+
+    function runCpuTurn() {
+      if (gameOver) {
+        hideBlockOverlay();
+        return;
+      }
+
+      // 1. Palpite direto se sobrar 1 candidato
+      if (cpuCandidates.length === 1) {
+        const candidate = cpuCandidates[0];
+        const isCorrect = (candidate.sym === mySecret.sym);
+
+        pushHistoryCard({
+          type: "opp",
+          author: "COMPUTADOR",
+          isGuess: true,
+          guessElement: `${candidate.name} (${candidate.sym})`,
+          answer: isCorrect ? "CORRETO!" : "INCORRETO"
+        });
+
+        hideBlockOverlay();
+
+        if (isCorrect) {
+          showVictoryScreen(false, mySecret, opponentSecret, mySecret, "Computador");
+        } else {
+          cpuCandidates = [];
+          endCpuTurn();
+        }
+        return;
+      }
+
+      // 2. Busca binária entre as perguntas ainda NÃO usadas (dentre as 30)
+      let bestQ = -1;
+      let minDiff = 999;
+      const half = cpuCandidates.length / 2;
+
+      for (let i = 0; i < QUESTIONS.length; i++) {
+        // PULA PERGUNTAS JÁ USADAS!
+        if (usedQuestionsSet.has(i)) continue;
+
+        let trueCount = 0;
+        cpuCandidates.forEach(c => {
+          if (c.q[i]) trueCount++;
+        });
+
+        if (trueCount === 0 || trueCount === cpuCandidates.length) continue;
+
+        let diff = Math.abs(trueCount - half);
+
+        if (diff < minDiff) {
+          minDiff = diff;
+          bestQ = i;
+        }
+      }
+
+      // Se todas as 30 perguntas que dividem os candidatos foram usadas
+      if (bestQ === -1) {
+        // Tenta achar qualquer pergunta restante não usada
+        for (let i = 0; i < QUESTIONS.length; i++) {
+          if (!usedQuestionsSet.has(i)) {
+            bestQ = i;
+            break;
+          }
+        }
+      }
+
+      // Se esgotaram todas as 30 perguntas sem dedução, arrisca palpite
+      if (bestQ === -1) {
+        const guess = cpuCandidates[Math.floor(Math.random() * cpuCandidates.length)];
+        const isCorrect = (guess.sym === mySecret.sym);
+
+        pushHistoryCard({
+          type: "opp",
+          author: "COMPUTADOR",
+          isGuess: true,
+          guessElement: `${guess.name} (${guess.sym})`,
+          answer: isCorrect ? "CORRETO!" : "INCORRETO"
+        });
+
+        hideBlockOverlay();
+
+        if (isCorrect) {
+          showVictoryScreen(false, mySecret, opponentSecret, mySecret, "Computador");
+        } else {
+          cpuCandidates = cpuCandidates.filter(e => e.sym !== guess.sym);
+          endCpuTurn();
+        }
+        return;
+      }
+
+      // IA escolheu a pergunta -> MARCA COMO USADA PARA NUNCA MAIS REPETIR
+      usedQuestionsSet.add(bestQ);
+      populateQuestionSelect();
+
+      hideBlockOverlay();
+
+      openAnswerModal(bestQ, "Inteligência Artificial", (validatedAnswerStr) => {
+        const validatedBool = (validatedAnswerStr === "SIM");
+
+        cpuCandidates = cpuCandidates.filter(c => c.q[bestQ] === validatedBool);
+
+        pushHistoryCard({
+          type: "opp",
+          author: "COMPUTADOR",
+          question: QUESTIONS[bestQ],
+          answer: validatedAnswerStr
+        });
+
+        endCpuTurn();
+      });
+    }
+
+    function endCpuTurn() {
+      if (gameOver) return;
+      isMyTurn = true;
+      updateTurnUI();
+    }
+
+    /* ==========================================================================
+       HISTÓRICO
+       ========================================================================== */
+    function clearHistoryUI() {
+      document.getElementById("historyList").innerHTML = "";
+      document.getElementById("logCount").textContent = "0 eventos";
+    }
+
+    function pushHistoryCard(item) {
+      localHistory.push(item);
+      appendHistoryItemToDOM(item);
+    }
+
+    function appendHistoryItemToDOM(item) {
+      const list = document.getElementById("historyList");
+      const card = document.createElement("div");
+
+      const timeStr = item.time ? new Date(item.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+      let cardClass = "history-card";
+      let badgeClass = "author-badge";
+
+      if (item.type === "player") {
+        cardClass += " is-player";
+        badgeClass += " badge-player";
+      } else if (item.type === "opp") {
+        cardClass += " is-opp";
+        badgeClass += " badge-opp";
+      } else {
+        cardClass += " is-system";
+        badgeClass += " badge-sys";
+      }
+
+      card.className = cardClass;
+
+      let innerContent = "";
+
+      if (item.type === "system") {
+        innerContent = `
+          <div class="history-card-header">
+            <div class="history-author">
+              <span class="${badgeClass}">${item.author}</span>
+              <span style="font-size: 11px; font-weight: 700; color: #fbbf24;">${item.title || 'Aviso'}</span>
+            </div>
+            <span class="history-timestamp">${timeStr}</span>
+          </div>
+          <div class="history-content">${item.content}</div>
+        `;
+      } else if (item.isGuess) {
+        const isCorrect = (item.answer === "CORRETO!");
+        const tagClass = isCorrect ? "ans-tag-guess-correct" : "ans-tag-guess-wrong";
+        const icon = isCorrect ? "🎉" : "❌";
+
+        innerContent = `
+          <div class="history-card-header">
+            <div class="history-author">
+              <span class="${badgeClass}">${item.author}</span>
+              <span style="font-size: 11px; color: var(--accent-amber); font-weight: 700;">🎯 PALPITE DIRETO</span>
+            </div>
+            <span class="history-timestamp">${timeStr}</span>
+          </div>
+          <div class="history-content">
+            Arriscou que o elemento é <strong>${item.guessElement}</strong>
+          </div>
+          <div class="history-answer-row">
+            <span class="history-answer-label">Resultado:</span>
+            <span class="answer-tag ${tagClass}">${icon} ${item.answer}</span>
+          </div>
+        `;
+      } else {
+        const isYes = (item.answer === "SIM");
+        const tagClass = isYes ? "ans-tag-yes" : "ans-tag-no";
+        const icon = isYes ? "✓" : "✗";
+
+        innerContent = `
+          <div class="history-card-header">
+            <div class="history-author">
+              <span class="${badgeClass}">${item.author}</span>
+              <span style="font-size: 11px; color: var(--text-muted);">perguntou:</span>
+            </div>
+            <span class="history-timestamp">${timeStr}</span>
+          </div>
+          <div class="history-question">
+            <span>❓</span> <span><strong>${item.question}</strong></span>
+          </div>
+          <div class="history-answer-row">
+            <span class="history-answer-label">Resposta:</span>
+            <span class="answer-tag ${tagClass}">${icon} ${item.answer}</span>
+          </div>
+        `;
+      }
+
+      card.innerHTML = innerContent;
+      list.insertBefore(card, list.firstChild);
+
+      const total = list.querySelectorAll(".history-card").length;
+      document.getElementById("logCount").textContent = `${total} eventos`;
+    }
+
+    function renderHistoryFromLogs(logs) {
+      clearHistoryUI();
+      logs.forEach(log => {
+        const isMe = (log.player === myRole);
+        appendHistoryItemToDOM({
+          type: isMe ? "player" : "opp",
+          author: isMe ? "VOCÊ" : (log.playerName || "ADVERSÁRIO").toUpperCase(),
+          isGuess: (log.type === "guess"),
+          guessElement: log.guessElement,
+          question: log.question,
+          answer: log.answer,
+          time: log.time
+        });
+      });
+    }
+
+    function updateTurnUI() {
+      const badge = document.getElementById("turnBadge");
+      const text = document.getElementById("turnText");
+      const btnAsk = document.getElementById("btnAsk");
+      const btnGuess = document.getElementById("btnToggleGuess");
+      const qSelect = document.getElementById("questionSelect");
+      const roleTag = document.getElementById("turnRoleTag");
+
+      if (isMyTurn) {
+        badge.className = "turn-badge player-turn";
+        text.textContent = "Sua Vez";
+        roleTag.textContent = "Sua Vez de Jogar";
+        btnAsk.disabled = (usedQuestionsSet.size >= QUESTIONS.length);
+        btnGuess.disabled = false;
+        qSelect.disabled = false;
+        hideBlockOverlay();
+      } else {
+        badge.className = "turn-badge opp-turn";
+        text.textContent = (gameMode === "local" ? "Computador Pensando..." : "Vez do Adversário");
+        roleTag.textContent = "Aguardando Jogador";
+        btnAsk.disabled = true;
+        btnGuess.disabled = true;
+        qSelect.disabled = true;
+
+        if (gameMode === "online" && !gameOver) {
+          showBlockOverlay(
+            "Vez do Adversário",
+            "Aguarde enquanto o outro jogador escolhe uma pergunta ou tenta adivinhar...",
+            "⏳"
+          );
+        }
+      }
+    }
+
+    /* ==========================================================================
+       TELA DE VITÓRIA / REVELAÇÃO
+       ========================================================================= */
+    function showVictoryScreen(isWinner, p1El, p2El, winningElement, winnerName) {
+      gameOver = true;
+      hideBlockOverlay();
+      hideBanner();
+      hideAnswerModal();
+      const modal = document.getElementById("victoryModal");
+      const badge = document.getElementById("winBadge");
+      const title = document.getElementById("winTitle");
+      const subtitle = document.getElementById("winSubtitle");
+
+      if (isWinner) {
+        badge.className = "winner-badge win-player";
+        badge.textContent = "🎉 VITÓRIA!";
+        title.textContent = "Parabéns, Você Venceu!";
+        subtitle.textContent = "Você desvendou o elemento químico secreto do seu adversário!";
+      } else {
+        badge.className = "winner-badge win-opp";
+        badge.textContent = "DERROTA";
+        title.textContent = `${winnerName} Venceu!`;
+        subtitle.textContent = "O adversário adivinhou o seu elemento secreto primeiro.";
+      }
+
+      document.getElementById("revealP1Label").textContent = (gameMode === "local" ? "Seu Elemento" : "Jogador 1");
+      document.getElementById("revealP1Sym").textContent = p1El.sym;
+      document.getElementById("revealP1Name").textContent = `${p1El.name} (Z=${p1El.num})`;
+      document.getElementById("revealP1Details").textContent = `Grupo ${p1El.group} • Período ${p1El.period}`;
+
+      document.getElementById("revealP2Label").textContent = (gameMode === "local" ? "Computador" : "Jogador 2");
+      document.getElementById("revealP2Sym").textContent = p2El.sym;
+      document.getElementById("revealP2Name").textContent = `${p2El.name} (Z=${p2El.num})`;
+      document.getElementById("revealP2Details").textContent = `Grupo ${p2El.group} • Período ${p2El.period}`;
+
+      document.getElementById("revealFact").textContent = winningElement.fact || "Elemento fascinante da tabela periódica!";
+
+      modal.classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
