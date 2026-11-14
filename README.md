@@ -1,4 +1,4 @@
-# Cara a Cara da Química 🧪
+# Cara a Cara Químico 🧪
 
 Um jogo interativo de adivinhação e dedução química inspirado no clássico "Cara a Cara" (Guess Who?), desenvolvido em um único arquivo HTML standalone, sem dependências externas pesadas e com visual dark moderno.
 
