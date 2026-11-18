@@ -1993,6 +1993,15 @@
         </div>
       </div>
 
+      <div class="lobby-section">
+        <div class="lobby-section-title">Opção C: Procurar Partida Aberta 🔍</div>
+        <p style="text-align: left; margin-bottom: 12px;">Encontre automaticamente outro jogador esperando uma partida — sem precisar de código.</p>
+        <button class="btn-action" style="width: 100%; padding: 12px;" id="btnFindMatch" onclick="findOpenMatch()">
+          <span>🔍</span> Procurar Partida
+        </button>
+        <div id="findMatchStatus" style="font-size: 13px; color: var(--text-muted); margin-top: 10px; text-align: center; display: none;"></div>
+      </div>
+
       <div style="text-align: center;">
         <button class="btn-header" onclick="showScreen('screenStart')">Voltar ao Início</button>
       </div>
@@ -2982,7 +2991,78 @@
       }
     });
   
+    /* =========================================================
+       MATCHMAKING: procura sala aberta no Firebase
+       ========================================================= */
+    function findOpenMatch() {
+      if (!db) { alert("Sem conexão com o servidor."); return; }
+      const btn = document.getElementById("btnFindMatch");
+      const statusEl = document.getElementById("findMatchStatus");
+      btn.disabled = true;
+      statusEl.style.display = "block";
+      statusEl.textContent = "🔍 Procurando partidas abertas...";
+
+      const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+      db.ref("rooms").orderByChild("status").equalTo("waiting").once("value").then(snapshot => {
+        const rooms = snapshot.val();
+        let foundCode = null;
+        if (rooms) {
+          for (const [code, room] of Object.entries(rooms)) {
+            if (room.created && room.created > tenMinutesAgo && !room.player2) {
+              foundCode = code;
+              break;
+            }
+          }
+        }
+        if (foundCode) {
+          statusEl.textContent = `✅ Partida encontrada! Entrando na sala ${foundCode}...`;
+          setTimeout(() => {
+            joinOnlineRoom(foundCode);
+            btn.disabled = false;
+          }, 1000);
+        } else {
+          statusEl.textContent = "Nenhuma partida aberta encontrada. Criando uma nova sala...";
+          setTimeout(() => {
+            createOnlineRoom();
+            btn.disabled = false;
+            statusEl.style.display = "none";
+          }, 1200);
+        }
+      }).catch(err => {
+        statusEl.textContent = "Erro ao procurar: " + err.message;
+        btn.disabled = false;
+      });
+    }
+
+    /* =========================================================
+       COMANDOS DE SALA DE AULA (console do navegador)
+       liberarElementos()  → libera todos os 30 elementos (sessão)
+       resetarElementos()  → volta ao estado inicial (só H)
+       ========================================================= */
+    window.liberarElementos = function() {
+      const allSyms = ELEMENTS.map(e => e.sym);
+      try {
+        localStorage.setItem(STORAGE_KEY_SEEN_ELEMENTS, JSON.stringify(allSyms));
+        updateStatsHeaderBadge();
+        console.log('%c✅ Todos os 30 elementos foram liberados para esta sessão!', 'color: #38bdf8; font-weight: bold; font-size: 14px;');
+        console.log('%cPara reverter, digite: resetarElementos()', 'color: #94a3b8;');
+      } catch(e) { console.error('Erro:', e); }
+    };
+
+    window.resetarElementos = function() {
+      try {
+        localStorage.setItem(STORAGE_KEY_SEEN_ELEMENTS, JSON.stringify(['H']));
+        updateStatsHeaderBadge();
+        console.log('%c🔒 Elementos resetados. Apenas Hidrogênio disponível.', 'color: #f87171; font-weight: bold;');
+      } catch(e) { console.error('Erro:', e); }
+    };
+
     window.onload = () => {
+      // Mensagem de boas-vindas no console para professores
+      console.log('%c🧪 Cara a Cara Químico — Modo Sala de Aula', 'color: #38bdf8; font-size: 16px; font-weight: bold;');
+      console.log('%cComandos disponíveis no console:', 'color: #94a3b8; font-size: 12px;');
+      console.log('%c  liberarElementos()  → Libera todos os 30 elementos temporariamente', 'color: #4ade80; font-size: 12px;');
+      console.log('%c  resetarElementos()  → Volta ao estado inicial (só Hidrogênio)', 'color: #f87171; font-size: 12px;');
       updateStatsHeaderBadge();
       populateQuestionSelect();
 
