@@ -1435,6 +1435,16 @@
         <button class="btn-copy" onclick="copyRoomLink()">Copiar Link</button>
       </div>
 
+      <!-- Botão Tutorial / Ajuda -->
+      <button class="btn-stats-badge" onclick="openTutorial(true)">
+        <span>💡</span> Como Jogar
+      </button>
+
+      <!-- Botão Histórico / Caderno de Elementos -->
+      <button class="btn-stats-badge" onclick="openStatsModal()">
+        <span>🧪</span> Meu Progresso (<span id="headerElementsSeenCount">0</span>/30)
+      </button>
+
       <!-- Turn indicator -->
       <div id="turnBadge" class="turn-badge player-turn" style="display: none;">
         <span class="pulse-dot"></span>
@@ -1458,7 +1468,7 @@
           <div class="mode-icon">🤖</div>
           <div>
             <div class="mode-title">Jogar Local (vs Computador)</div>
-            <div class="mode-desc">Enfrente a inteligência artificial com dedução por busca binária em tempo real.</div>
+            <div class="mode-desc">Enfrente o computador em um duelo divertido e teste seus conhecimentos químicos!</div>
           </div>
         </div>
 
@@ -1550,7 +1560,7 @@
         <div>
           <div class="block-title" id="blockTitle">Vez da Inteligência Artificial</div>
           <div class="block-subtitle" id="blockSubtitle">
-            A IA está analisando a tabela periódica e calculando a melhor pergunta...
+            O computador está pensando na melhor pergunta para desvendar seu elemento...
           </div>
         </div>
         <div class="block-progress-bar">
@@ -1614,14 +1624,37 @@
         <!-- Bloco Padrão de Perguntas e Palpites (Fase de Ação) -->
         <div id="actionControlsStandard" style="display: flex; flex-direction: column; gap: 14px;">
           <div class="action-group">
-            <div style="display: flex; justify-content: space-between; align-items: baseline;">
-              <label style="font-size: 12px; color: var(--text-muted);">1. Escolha uma Pergunta (30 Disponíveis):</label>
-              <span id="availableQuestionsBadge" style="font-size: 11px; color: var(--accent-cyan); font-weight: 700;">30 restantes</span>
+            <!-- Abas de Modo de Pergunta -->
+            <div class="question-mode-tabs">
+              <button type="button" class="q-tab-btn active" id="tabPredefinedQ" onclick="setQuestionInputMode('predefined')">
+                📋 Perguntas Prontas
+              </button>
+              <button type="button" class="q-tab-btn" id="tabCustomQ" onclick="setQuestionInputMode('custom')">
+                ✍️ Escrever Minha Pergunta
+              </button>
             </div>
-            <select id="questionSelect" class="question-select">
-              <!-- 30 Perguntas sem repetição -->
-            </select>
-            <button id="btnAsk" class="btn-action btn-primary" onclick="handleAskQuestionAction()">
+
+            <!-- Modo 1: Perguntas Prontas -->
+            <div id="boxPredefinedQuestion">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                <label style="font-size: 12px; color: var(--text-muted);">Escolha uma das 30 perguntas:</label>
+                <span id="availableQuestionsBadge" style="font-size: 11px; color: var(--accent-cyan); font-weight: 700;">30 restantes</span>
+              </div>
+              <select id="questionSelect" class="question-select">
+                <!-- 30 Perguntas sem repetição -->
+              </select>
+            </div>
+
+            <!-- Modo 2: Escrever Pergunta Própria -->
+            <div id="boxCustomQuestion" style="display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                <label style="font-size: 12px; color: var(--text-muted);">Escreva uma pergunta de Sim ou Não:</label>
+                <span style="font-size: 10px; color: #38bdf8;">Livre / Criativa</span>
+              </div>
+              <input type="text" id="customQuestionInput" class="custom-question-input" placeholder="Ex: É um gás? É usado em fogos de artifício?" maxlength="120">
+            </div>
+
+            <button id="btnAsk" class="btn-action btn-primary" style="margin-top: 6px;" onclick="handleAskQuestionAction()">
               <span>❓</span> Fazer Pergunta
             </button>
           </div>
@@ -1708,18 +1741,133 @@
         </button>
       </div>
 
-      <!-- Box de Correção com Explicação Química quando o jogador errar -->
-      <div id="answerCorrectionBox" class="answer-correction-box">
-        <div class="correction-title">
-          <span>⚠️</span> Resposta Incorreta! Correção Científica:
+      <!-- Box de Curiosidade e Fato Químico Reformulado -->
+      <div id="answerCorrectionBox" class="answer-curiosity-box" style="display: none;">
+        <div class="curiosity-box-title">
+          <span>💡</span> Você Sabia? Curiosidade Científica:
         </div>
-        <div class="correction-explanation" id="correctionExplanationText">
-          <!-- Explicação preenchida via JS -->
+        <div class="curiosity-box-text" id="correctionExplanationText">
+          <!-- Explicação / Fato preenchido via JS -->
         </div>
-        <div style="margin-top: 10px; text-align: right;">
-          <button class="btn-action btn-primary" style="padding: 6px 16px; font-size: 12px;" onclick="confirmCorrectionAndProceed()">
-            Entendi, Prosseguir ➔
+        <div style="margin-top: 12px; text-align: right;">
+          <button class="btn-action btn-primary" style="padding: 7px 18px; font-size: 12px;" onclick="confirmCorrectionAndProceed()">
+            Legal! Entendi & Prosseguir ➔
           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: TUTORIAL EM 3 PASSOS (ANTES DA PRIMEIRA PARTIDA OU VIA BOTÃO)
+       ========================================================================= -->
+  <div id="tutorialModal" class="modal-overlay hidden">
+    <div class="tutorial-modal-card">
+      <div class="tutorial-step-dots">
+        <div class="step-dot active" id="dotStep1"></div>
+        <div class="step-dot" id="dotStep2"></div>
+        <div class="step-dot" id="dotStep3"></div>
+      </div>
+
+      <!-- Passo 1 -->
+      <div class="tutorial-step-pane active" id="paneStep1">
+        <div class="tutorial-step-icon">🔬</div>
+        <div class="tutorial-step-title">Passo 1: Seu Elemento Secreto</div>
+        <div class="tutorial-step-desc">
+          No começo do jogo, você e seu adversário escolhem em segredo um dos <strong>30 elementos da Tabela Periódica</strong>. O objetivo é descobrir o elemento do outro antes que ele descubra o seu!
+        </div>
+        <div class="tutorial-step-highlight">
+          💡 <em>Dica:</em> Preste atenção no número atômico, estado físico e onde ele é usado no cotidiano.
+        </div>
+      </div>
+
+      <!-- Passo 2 -->
+      <div class="tutorial-step-pane" id="paneStep2">
+        <div class="tutorial-step-icon">❓</div>
+        <div class="tutorial-step-title">Passo 2: Pergunte e Responda</div>
+        <div class="tutorial-step-desc">
+          Na sua vez, faça uma pergunta de <strong>Sim ou Não</strong> usando as opções da lista ou <strong>escrevendo sua própria pergunta</strong>!
+          Quando o adversário perguntar algo sobre o seu elemento, responda com sinceridade.
+        </div>
+        <div class="tutorial-step-highlight">
+          ✨ <em>Curiosidade Científica:</em> Se você tiver dúvida em uma resposta, o jogo traz curiosidades e dicas químicas para te ajudar a aprender!
+        </div>
+      </div>
+
+      <!-- Passo 3 -->
+      <div class="tutorial-step-pane" id="paneStep3">
+        <div class="tutorial-step-icon">✂️</div>
+        <div class="tutorial-step-title">Passo 3: Risque e Dê o Palpite!</div>
+        <div class="tutorial-step-desc">
+          A cada resposta recebida, clique nos elementos que não combinam para <strong>riscá-los do tabuleiro</strong>. Quando sobrar apenas um candidato certo, clique em <strong>Fazer Palpite</strong> para vencer a partida!
+        </div>
+        <div class="tutorial-step-highlight">
+          🎯 <em>Atenção:</em> Um palpite consome sua rodada, então tenha certeza da sua dedução antes de arriscar!
+        </div>
+      </div>
+
+      <div class="tutorial-nav-buttons">
+        <button class="btn-header" id="btnTutorialBack" onclick="prevTutorialStep()" style="visibility: hidden;">
+          ◀ Anterior
+        </button>
+        <span style="font-size: 12px; color: var(--text-muted);" id="tutorialStepIndicator">Passo 1 de 3</span>
+        <button class="btn-action btn-primary" id="btnTutorialNext" onclick="nextTutorialStep()" style="padding: 9px 20px;">
+          Próximo ▶
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: HISTÓRICO DE PARTIDAS E COLEÇÃO DE ELEMENTOS VISTOS
+       ========================================================================= -->
+  <div id="statsModal" class="modal-overlay hidden">
+    <div class="collection-modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <div>
+          <h2 style="font-size: 18px; color: var(--text-main);">🧪 Seu Caderno da Química</h2>
+          <div style="font-size: 12px; color: var(--text-muted);">Histórico de partidas e elementos que você já conheceu</div>
+        </div>
+        <button class="btn-header" onclick="closeStatsModal()">✕ Fechar</button>
+      </div>
+
+      <!-- Resumo estatístico -->
+      <div class="stats-summary-grid">
+        <div class="stat-card-box">
+          <div class="stat-card-number" id="statMatchesPlayed">0</div>
+          <div class="stat-card-label">Partidas</div>
+        </div>
+        <div class="stat-card-box">
+          <div class="stat-card-number" id="statMatchesWon" style="color: #4ade80;">0</div>
+          <div class="stat-card-label">Vitórias</div>
+        </div>
+        <div class="stat-card-box">
+          <div class="stat-card-number" id="statWinRate" style="color: #fbbf24;">0%</div>
+          <div class="stat-card-label">Aproveitamento</div>
+        </div>
+        <div class="stat-card-box">
+          <div class="stat-card-number" id="statElementsSeen">0/30</div>
+          <div class="stat-card-label">Elementos Vistos</div>
+        </div>
+      </div>
+
+      <!-- Coleção dos 30 elementos -->
+      <div>
+        <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--accent-cyan);">
+          Álbum de Elementos Descobertos:
+        </div>
+        <div class="discovered-elements-grid" id="discoveredElementsGrid">
+          <!-- Preenchido via JS -->
+        </div>
+      </div>
+
+      <!-- Histórico recente de partidas -->
+      <div>
+        <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-muted);">
+          Últimas Partidas:
+        </div>
+        <div id="matchHistoryList" style="display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto;">
+          <!-- Preenchido via JS -->
         </div>
       </div>
     </div>
@@ -1995,6 +2143,235 @@
     ];
 
     /* ==========================================================================
+       TUTORIAL EM 3 PASSOS, RETENÇÃO DE PARTIDAS E MODO DE PERGUNTA
+       ========================================================================== */
+    let currentTutorialStep = 1;
+    let questionInputMode = "predefined"; // "predefined" | "custom"
+
+    // Chaves de armazenamento local (retenção)
+    const STORAGE_KEY_TUTORIAL_SEEN = "cara_quimica_tutorial_seen_v1";
+    const STORAGE_KEY_MATCH_STATS = "cara_quimica_stats_v1";
+    const STORAGE_KEY_SEEN_ELEMENTS = "cara_quimica_seen_elements_v1";
+
+    function getLocalStats() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_MATCH_STATS);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return { played: 0, won: 0, matches: [] };
+    }
+
+    function saveLocalStats(stats) {
+      try {
+        localStorage.setItem(STORAGE_KEY_MATCH_STATS, JSON.stringify(stats));
+      } catch (e) {}
+    }
+
+    function getSeenElementsSet() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_SEEN_ELEMENTS);
+        if (raw) return new Set(JSON.parse(raw));
+      } catch (e) {}
+      return new Set();
+    }
+
+    function registerElementSeen(sym) {
+      if (!sym) return;
+      try {
+        const seen = getSeenElementsSet();
+        seen.add(sym);
+        localStorage.setItem(STORAGE_KEY_SEEN_ELEMENTS, JSON.stringify(Array.from(seen)));
+        updateStatsHeaderBadge();
+      } catch (e) {}
+    }
+
+    function registerMatchFinished(isWinner, myElementSym, oppElementSym, opponentName) {
+      try {
+        registerElementSeen(myElementSym);
+        registerElementSeen(oppElementSym);
+
+        const stats = getLocalStats();
+        stats.played = (stats.played || 0) + 1;
+        if (isWinner) {
+          stats.won = (stats.won || 0) + 1;
+        }
+
+        const matchRecord = {
+          date: Date.now(),
+          won: !!isWinner,
+          myElement: myElementSym,
+          oppElement: oppElementSym,
+          opponent: opponentName || "Computador"
+        };
+
+        if (!stats.matches) stats.matches = [];
+        stats.matches.unshift(matchRecord);
+        if (stats.matches.length > 20) stats.matches = stats.matches.slice(0, 20); // guarda as últimas 20
+
+        saveLocalStats(stats);
+        updateStatsHeaderBadge();
+      } catch (e) {}
+    }
+
+    function updateStatsHeaderBadge() {
+      const seen = getSeenElementsSet();
+      const countEl = document.getElementById("headerElementsSeenCount");
+      if (countEl) countEl.textContent = seen.size;
+    }
+
+    /* Controle do Tutorial */
+    function checkFirstTimeTutorial(onCompleted) {
+      const hasSeen = localStorage.getItem(STORAGE_KEY_TUTORIAL_SEEN);
+      if (!hasSeen) {
+        openTutorial(false, onCompleted);
+      } else {
+        if (onCompleted) onCompleted();
+      }
+    }
+
+    let tutorialCallbackAfter = null;
+
+    function openTutorial(manualOpen = true, callback = null) {
+      tutorialCallbackAfter = callback;
+      currentTutorialStep = 1;
+      renderTutorialStep();
+      document.getElementById("tutorialModal").classList.remove("hidden");
+    }
+
+    function closeTutorial() {
+      localStorage.setItem(STORAGE_KEY_TUTORIAL_SEEN, "true");
+      document.getElementById("tutorialModal").classList.add("hidden");
+      if (tutorialCallbackAfter) {
+        const cb = tutorialCallbackAfter;
+        tutorialCallbackAfter = null;
+        cb();
+      }
+    }
+
+    function renderTutorialStep() {
+      for (let i = 1; i <= 3; i++) {
+        const pane = document.getElementById(`paneStep${i}`);
+        const dot = document.getElementById(`dotStep${i}`);
+        if (pane) pane.classList.toggle("active", i === currentTutorialStep);
+        if (dot) dot.classList.toggle("active", i === currentTutorialStep);
+      }
+
+      document.getElementById("btnTutorialBack").style.visibility = (currentTutorialStep === 1 ? "hidden" : "visible");
+      document.getElementById("tutorialStepIndicator").textContent = `Passo ${currentTutorialStep} de 3`;
+
+      const nextBtn = document.getElementById("btnTutorialNext");
+      if (currentTutorialStep === 3) {
+        nextBtn.textContent = "Vamos Jogar! 🚀";
+      } else {
+        nextBtn.textContent = "Próximo ▶";
+      }
+    }
+
+    function nextTutorialStep() {
+      if (currentTutorialStep < 3) {
+        currentTutorialStep++;
+        renderTutorialStep();
+      } else {
+        closeTutorial();
+      }
+    }
+
+    function prevTutorialStep() {
+      if (currentTutorialStep > 1) {
+        currentTutorialStep--;
+        renderTutorialStep();
+      }
+    }
+
+    /* Modal de Estatísticas e Elementos Vistos */
+    function openStatsModal() {
+      const stats = getLocalStats();
+      const seen = getSeenElementsSet();
+
+      document.getElementById("statMatchesPlayed").textContent = stats.played || 0;
+      document.getElementById("statMatchesWon").textContent = stats.won || 0;
+      const rate = stats.played ? Math.round((stats.won / stats.played) * 100) : 0;
+      document.getElementById("statWinRate").textContent = `${rate}%`;
+      document.getElementById("statElementsSeen").textContent = `${seen.size}/30`;
+
+      // Renderiza grade dos 30 elementos
+      const grid = document.getElementById("discoveredElementsGrid");
+      grid.innerHTML = "";
+      ELEMENTS.forEach(el => {
+        const isDiscovered = seen.has(el.sym);
+        const pill = document.createElement("div");
+        pill.className = "element-disc-pill" + (isDiscovered ? " discovered" : "");
+        pill.title = isDiscovered ? `${el.name} (${el.sym}) - Descoberto!` : `${el.name} (${el.sym}) - Ainda não visto`;
+        pill.innerHTML = `
+          <div style="font-weight: 800;">${el.sym}</div>
+          <div style="font-size: 9px; opacity: 0.85;">${isDiscovered ? el.name.slice(0, 7) : '???'}</div>
+        `;
+        grid.appendChild(pill);
+      });
+
+      // Renderiza últimas partidas
+      const list = document.getElementById("matchHistoryList");
+      list.innerHTML = "";
+      if (!stats.matches || stats.matches.length === 0) {
+        list.innerHTML = '<div style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 12px;">Nenhuma partida registrada ainda. Jogue uma rodada!</div>';
+      } else {
+        stats.matches.forEach(m => {
+          const row = document.createElement("div");
+          row.style.display = "flex";
+          row.style.justifyContent = "space-between";
+          row.style.alignItems = "center";
+          row.style.background = "#0b111c";
+          row.style.padding = "6px 10px";
+          row.style.borderRadius = "6px";
+          row.style.border = "1px solid var(--border-color)";
+          row.style.fontSize = "12px";
+
+          const dateStr = new Date(m.date).toLocaleDateString([], { day: '2-digit', month: '2-digit' });
+          const statusBadge = m.won
+            ? '<span style="color: #4ade80; font-weight: 700;">Vitória</span>'
+            : '<span style="color: #f87171; font-weight: 700;">Derrota</span>';
+
+          row.innerHTML = `
+            <span>${statusBadge} vs ${m.opponent} (${m.oppElement || '?'})</span>
+            <span style="font-size: 11px; color: var(--text-muted);">${dateStr}</span>
+          `;
+          list.appendChild(row);
+        });
+      }
+
+      document.getElementById("statsModal").classList.remove("hidden");
+    }
+
+    function closeStatsModal() {
+      document.getElementById("statsModal").classList.add("hidden");
+    }
+
+    /* Alternador entre Perguntas Prontas e Pergunta Própria */
+    function setQuestionInputMode(mode) {
+      questionInputMode = mode;
+      const tabPred = document.getElementById("tabPredefinedQ");
+      const tabCust = document.getElementById("tabCustomQ");
+      const boxPred = document.getElementById("boxPredefinedQuestion");
+      const boxCust = document.getElementById("boxCustomQuestion");
+
+      if (mode === "predefined") {
+        tabPred.classList.add("active");
+        tabCust.classList.remove("active");
+        boxPred.style.display = "block";
+        boxCust.style.display = "none";
+      } else {
+        tabCust.classList.add("active");
+        tabPred.classList.remove("active");
+        boxPred.style.display = "none";
+        boxCust.style.display = "block";
+        setTimeout(() => {
+          const inp = document.getElementById("customQuestionInput");
+          if (inp) inp.focus();
+        }, 50);
+      }
+    }
+
+    /* ==========================================================================
        ESTADO GERAL DA APLICAÇÃO
        ========================================================================== */
     let gameMode = "local"; // "local" | "online"
@@ -2082,6 +2459,7 @@
        INICIALIZAÇÃO & VERIFICAÇÃO DE URL (?room=XXXXXX)
        ========================================================================== */
     window.onload = () => {
+      updateStatsHeaderBadge();
       populateQuestionSelect();
 
       const urlParams = new URLSearchParams(window.location.search);
@@ -2132,6 +2510,12 @@
        FLUXO LOCAL (vs CPU)
        ========================================================================== */
     function startLocalFlow() {
+      checkFirstTimeTutorial(() => {
+        proceedStartLocalFlow();
+      });
+    }
+
+    function proceedStartLocalFlow() {
       gameMode = "local";
       myRole = "player1";
       document.getElementById("headerModeSubtitle").textContent = "Modo Local vs Computador";
@@ -2142,6 +2526,12 @@
        FLUXO ONLINE (FIREBASE)
        ========================================================================== */
     function startOnlineFlow() {
+      checkFirstTimeTutorial(() => {
+        proceedStartOnlineFlow();
+      });
+    }
+
+    function proceedStartOnlineFlow() {
       if (!db) {
         alert("Erro ao conectar com Firebase. Verifique sua conexão com a internet.");
         return;
@@ -2726,129 +3116,132 @@
     }
 
     function getScientificExplanation(el, qIdx, realBool) {
+      if (qIdx < 0) {
+        return `Sobre o <strong>${el.name} (${el.sym})</strong>: ele tem número atômico ${el.num}, massa de ${el.mass.toFixed(1)} u e fica no período ${el.period}, grupo ${el.group}.`;
+      }
       switch (qIdx) {
         case 0: // Ocorre naturalmente na Terra?
           return realBool
-            ? `O ${el.name} é um elemento primordial ou com ocorrência natural comprovada na Terra.`
-            : `O ${el.name} é puramente sintético ou extremamente efêmero na natureza terrestre.`;
+            ? `O <strong>${el.name}</strong> é um elemento que existe naturalmente no nosso planeta desde a formação da Terra!`
+            : `O <strong>${el.name}</strong> é um elemento tão raro ou instável na natureza que é criado por cientistas em laboratórios especializados.`;
         case 1: // É um metal?
           return realBool
-            ? `O ${el.name} é classificado como metal devido ao seu brilho característico, maleabilidade e condutividade elétrica e térmica.`
-            : `O ${el.name} não é um metal; é classificado como não-metal (ametal), semimetal ou gás nobre.`;
+            ? `O <strong>${el.name}</strong> é um metal de verdade: ele tem brilho metálico, conduz calor e eletricidade com facilidade e pode ser moldado!`
+            : `O <strong>${el.name}</strong> não é um metal! Ele se comporta como ametal, semimetal ou gás nobre na Tabela Periódica.`;
         case 2: // É um não-metal?
           return realBool
-            ? `O ${el.name} é classificado como não-metal (ametal ou gás nobre), com alta eletronegatividade e baixa condutividade.`
-            : `O ${el.name} não é um não-metal; trata-se de um metal ou semimetal.`;
+            ? `O <strong>${el.name}</strong> faz parte do grupo dos não-metais (ametais ou gases nobres), que costumam ser isolantes e não brilham como os metais.`
+            : `O <strong>${el.name}</strong> tem características metálicas, logo não é classificado como um não-metal.`;
         case 3: // É um semimetal?
           return realBool
-            ? `O ${el.name} (Si) é classicamente classificado como semimetal (metaloide), com propriedades intermediárias entre metais e ametais.`
-            : `O ${el.name} não é um semimetal; é categorizado como metal legítimo ou ametal/gás nobre.`;
+            ? `O <strong>${el.name} (Silício)</strong> é o clássico semimetal: ele tem propriedades que ficam no meio do caminho entre um metal e um não-metal, sendo ótimo como semicondutor!`
+            : `O <strong>${el.name}</strong> tem classificação bem definida como metal legítimo ou não-metal, não sendo um semimetal.`;
         case 4: // É um gás nobre?
           return realBool
-            ? `O ${el.name} pertence à família 18 (gases nobres), apresentando camada de valência completa e baixíssima reatividade química.`
-            : `O ${el.name} situa-se no grupo ${el.group}, não sendo um gás nobre da família 18.`;
+            ? `O <strong>${el.name}</strong> é um gás nobre da família 18! Ele é super estável e quase nunca se junta com outros átomos para formar reações.`
+            : `O <strong>${el.name}</strong> fica no grupo ${el.group}, portanto não é um gás nobre da família 18.`;
         case 5: // É um metal de transição?
           return realBool
-            ? `O ${el.name} pertence aos grupos 3 a 12 (bloco d), sendo um metal de transição típico.`
-            : `O ${el.name} situa-se no grupo ${el.group}, não pertencendo aos metais de transição do bloco d.`;
+            ? `O <strong>${el.name}</strong> é um metal de transição (do meio da tabela periódica, grupos 3 a 12), conhecido por sua resistência e compostos coloridos!`
+            : `O <strong>${el.name}</strong> está na coluna ${el.group}, fora da faixa central dos metais de transição.`;
         case 6: // Pertence ao grupo 1 ou 2?
           return realBool
-            ? `O ${el.name} pertence à família ${el.group} da tabela periódica (metais alcalinos ou alcalino-terrosos / H).`
-            : `O ${el.name} situa-se no grupo ${el.group}, fora dos grupos 1 e 2.`;
+            ? `O <strong>${el.name}</strong> fica bem na primeira ou segunda coluna da Tabela (grupo ${el.group}), onde estão elementos bem reativos como os metais alcalinos e alcalino-terrosos!`
+            : `O <strong>${el.name}</strong> situa-se no grupo ${el.group}, bem longe das duas primeiras colunas.`;
         case 7: // Está no período 1, 2 ou 3?
           return realBool
-            ? `O ${el.name} situa-se no ${el.period}º período da tabela periódica (possui ${el.period} camadas de elétrons).`
-            : `O ${el.name} situa-se no ${el.period}º período (possui ${el.period} camadas de elétrons), portanto fora dos períodos 1 a 3.`;
+            ? `O <strong>${el.name}</strong> está nas primeiras 3 linhas da tabela periódica (período ${el.period}), o que significa que seus elétrons ocupam até 3 camadas de energia!`
+            : `O <strong>${el.name}</strong> tem átomos maiores e fica na linha ${el.period} (período ${el.period}), além das três primeiras linhas.`;
         case 8: // Tem mais de 20 prótons?
           return realBool
-            ? `O número atômico (Z) do ${el.name} é ${el.num}, o que significa que ele tem ${el.num} prótons no núcleo (mais que 20).`
-            : `O número atômico (Z) do ${el.name} é ${el.num}, logo possui 20 ou menos prótons.`;
+            ? `O <strong>${el.name}</strong> tem número atômico ${el.num}, ou seja, possui ${el.num} prótons concentrados em seu núcleo (mais que 20)!`
+            : `O <strong>${el.name}</strong> tem Z=${el.num}, logo possui até 20 prótons no seu núcleo.`;
         case 9: // Sua massa atômica é maior que 50?
           return realBool
-            ? `A massa atômica média do ${el.name} é ${el.mass.toFixed(1)} u, sendo maior que 50 u.`
-            : `A massa atômica média do ${el.name} é de apenas ${el.mass.toFixed(1)} u (menor ou igual a 50 u).`;
+            ? `A massa atômica do <strong>${el.name}</strong> é de ${el.mass.toFixed(1)} u, sendo um átomo com massa superior a 50 unidades de massa atômica.`
+            : `A massa do <strong>${el.name}</strong> é leve: cerca de ${el.mass.toFixed(1)} u, ficando abaixo de 50.`;
         case 10: // É sólido à temperatura ambiente?
           return realBool
-            ? `À temperatura ambiente (25°C e 1 atm), o ponto de fusão do ${el.name} faz com que ele se encontre no estado sólido.`
-            : `À temperatura ambiente de 25°C, o ${el.name} encontra-se no estado gasoso ou líquido.`;
+            ? `Em um dia normal a 25°C, o <strong>${el.name}</strong> se apresenta no estado sólido, com seus átomos bem organizados e firmes.`
+            : `A 25°C o <strong>${el.name}</strong> se encontra no estado gasoso ou líquido, pois seu ponto de fusão é bem baixo.`;
         case 11: // É líquido à temperatura ambiente?
           return realBool
-            ? `O ${el.name} é uma notável raridade da natureza: é um dos pouquíssimos elementos líquidos a 25°C e 1 atm!`
-            : `O ${el.name} não é líquido à temperatura ambiente (encontra-se sólido ou gasoso).`;
+            ? `Uma super curiosidade: o <strong>${el.name}</strong> é uma das maiores raridades da natureza, sendo um dos pouquíssimos elementos líquidos a 25°C!`
+            : `O <strong>${el.name}</strong> não é líquido na temperatura ambiente (ele fica sólido ou na forma de gás).`;
         case 12: // É gasoso à temperatura ambiente?
           return realBool
-            ? `À temperatura ambiente de 25°C e 1 atm, o ${el.name} encontra-se naturalmente no estado gasoso.`
-            : `À temperatura ambiente de 25°C, o ${el.name} encontra-se no estado sólido ou líquido.`;
+            ? `O <strong>${el.name}</strong> está na forma de gás no ambiente ao nosso redor, com seus átomos livres e dispersos no ar.`
+            : `O <strong>${el.name}</strong> forma corpos condensados (sólido ou líquido) em temperatura ambiente.`;
         case 13: // É encontrado no ar atmosférico?
           return realBool
-            ? `O ${el.name} está presente na composição dos gases do ar atmosférico ou vapores naturais da Terra.`
-            : `O ${el.name} não é um componente volátil natural do ar atmosférico.`;
+            ? `O <strong>${el.name}</strong> está presente nos gases ou vapores que compõem o ar da nossa atmosfera terrestre!`
+            : `O <strong>${el.name}</strong> não fica disperso no ar que respiramos; ele fica fixado em rochas, minerais ou na água.`;
         case 14: // É encontrado no mar ou na água do mar?
           return realBool
-            ? `O ${el.name} é encontrado na água marinha, seja como constituinte da própria molécula de água ou como íon dissolvido no oceano.`
-            : `O ${el.name} é um gás nobre insolúvel que praticamente não está dissolvido ou retido na água do mar.`;
+            ? `O <strong>${el.name}</strong> é encontrado no oceano, seja fazendo parte da própria molécula de água ou dissolvido como sal e mineral marinho!`
+            : `O <strong>${el.name}</strong> é praticamente insolúvel e não permanece retido na água dos mares.`;
         case 15: // É encontrado no corpo humano?
           return realBool
-            ? `O ${el.name} faz parte da biologia humana (estruturas celulares, biomoléculas, ossos, eletrólitos ou micronutrientes essenciais).`
-            : `O ${el.name} não integra as funções nem os tecidos biológicos naturais do corpo humano.`;
+            ? `O <strong>${el.name}</strong> faz parte da nossa vida! Ele está nos nossos tecidos, sangue, ossos ou processos vitais do corpo humano.`
+            : `O <strong>${el.name}</strong> não é um nutriente nem faz parte natural da constituição do corpo humano.`;
         case 16: // É radioativo?
           return realBool
-            ? `O ${el.name} (Z=${el.num}) é instável e emite partículas e radiação através de decaimento nuclear contínuo.`
-            : `O ${el.name} possui isótopos estáveis e não é considerado um elemento radioativo natural perigoso.`;
+            ? `O <strong>${el.name} (Z=${el.num})</strong> tem um núcleo muito grande e instável que emite radiação natural ao longo do tempo.`
+            : `O <strong>${el.name}</strong> é estável e seguro, não sendo um elemento radioativo natural perigoso.`;
         case 17: // Reage com água?
           return realBool
-            ? `O ${el.name} reage diretamente com água (sob contato ou temperatura adequada), liberando gases ou formando compostos hidratados/ácidos/bases.`
-            : `O ${el.name} é quimicamente inerte ou resistente à ação direta da água em condições comuns.`;
+            ? `O <strong>${el.name}</strong> reage ativamente quando em contato com água, formando novas substâncias e liberando energia ou gases!`
+            : `O <strong>${el.name}</strong> é bem calmo com a água e não reage espontaneamente com ela no dia a dia.`;
         case 18: // Tem propriedades magnéticas?
           return realBool
-            ? `O ${el.name} exibe forte magnetismo característico (ferromagnetismo proeminente no Ferro, ou paramagnetismo no Oxigênio líquido).`
-            : `O ${el.name} é diamagnético ou não exibe propriedades magnéticas marcantes no cotidiano.`;
+            ? `O <strong>${el.name}</strong> é atraído por ímãs ou interage fortemente com campos magnéticos (como o magnetismo clássico do Ferro)!`
+            : `O <strong>${el.name}</strong> não é atraído por ímãs comuns no cotidiano.`;
         case 19: // É extraído de minérios metálicos?
           return realBool
-            ? `O ${el.name} é minerado e refinado comercialmente a partir de jazidas e minérios minerais da crosta terrestre.`
-            : `O ${el.name} é obtido diretamente da atmosfera, por condensação de gases, ou de fontes não-metálicas.`;
+            ? `O <strong>${el.name}</strong> é extraído de minas e pedreiras a partir de rochas minerais ricas nesse elemento!`
+            : `O <strong>${el.name}</strong> é obtido do ar, da água ou de fontes não-minerais.`;
         case 20: // É um dos elementos mais abundantes na crosta terrestre?
           return realBool
-            ? `O ${el.name} figura entre os 8 elementos mais abundantes que compõem praticamente 98% da crosta terrestre!`
-            : `O ${el.name} é um elemento de abundância intermediária ou traço na crosta terrestre.`;
+            ? `O <strong>${el.name}</strong> é um dos 'campeões' de presença no chão da Terra, estando entre os 8 elementos mais abundantes de toda a crosta terrestre!`
+            : `O <strong>${el.name}</strong> não está no topo dos mais abundantes da crosta terrestre, sendo mais moderado ou raro.`;
         case 21: // É usado em construção civil?
           return realBool
-            ? `O ${el.name} é intensamente empregado na engenharia e construção civil (concreto, vigas estruturais, argamassas, fiação ou tubulações).`
-            : `O ${el.name} não é um insumo representativo utilizado na construção civil.`;
+            ? `O <strong>${el.name}</strong> está nas obras e construções da nossa cidade (em vigas, cimento, fios elétricos, tijolos ou tubulações)!`
+            : `O <strong>${el.name}</strong> não costuma ser aplicado diretamente na engenharia e construção de prédios e casas.`;
         case 22: // É usado em eletrônicos ou tecnologia?
           return realBool
-            ? `O ${el.name} possui papel crucial na tecnologia moderna (semicondutores, circuitos, fiações, soldas, baterias ou displays).`
-            : `O ${el.name} tem aplicação exclusivamente não-eletrônica.`;
+            ? `O <strong>${el.name}</strong> é uma estrela da tecnologia moderna: está dentro de celulares, computadores, chips ou placas de circuito!`
+            : `O <strong>${el.name}</strong> tem usos mais tradicionais e não costuma ser empregado na tecnologia eletrônica.`;
         case 23: // É usado em embalagens ou utensílios domésticos?
           return realBool
-            ? `O ${el.name} está presente na fabricação de panelas, latas, garrafas, folhas metálicas, plásticos ou utensílios domésticos.`
-            : `O ${el.name} não costuma ser aplicado diretamente na produção de embalagens ou utensílios domésticos.`;
+            ? `Você encontra o <strong>${el.name}</strong> na sua casa: em panelas, latinhas de refrigerante, talheres, garrafas ou embalagens de alimentos!`
+            : `O <strong>${el.name}</strong> não tem aplicação em embalagens ou utilidades domésticas comuns.`;
         case 24: // É usado como combustível ou fonte de energia?
           return realBool
-            ? `O ${el.name} atua diretamente como combustível (foguetes/veículos), comburente essencial ou combustível nuclear em usinas de energia.`
-            : `O ${el.name} não atua diretamente como fonte de combustível primário de energia.`;
+            ? `O <strong>${el.name}</strong> gera energia de peso: pode ser combustível de foguetes, comburente do fogo ou combustível de reatores nucleares!`
+            : `O <strong>${el.name}</strong> não serve como fonte direta de combustível ou geração primária de energia.`;
         case 25: // É usado em baterias ou pilhas?
           return realBool
-            ? `O ${el.name} é utilizado nos eletrodos, eletrólitos ou componentes de baterias modernas e pilhas eletroquímicas.`
-            : `O ${el.name} não integra composições usuais de baterias ou pilhas elétricas.`;
+            ? `O <strong>${el.name}</strong> está presente nas pilhas e baterias recarregáveis que guardam energia para nossos aparelhos!`
+            : `O <strong>${el.name}</strong> não faz parte dos componentes comuns de pilhas ou baterias elétricas.`;
         case 26: // É usado na medicina ou farmácia?
           return realBool
-            ? `O ${el.name} possui ampla aplicação farmacêutica, médica ou hospitalar (remédios, contrastes, antissépticos ou gases terapêuticos).`
-            : `O ${el.name} não possui uso médico ou terapêutico significativo.`;
+            ? `O <strong>${el.name}</strong> ajuda a salvar vidas: é usado em medicamentos, exames de contraste, antissépticos ou tratamentos médicos!`
+            : `O <strong>${el.name}</strong> não tem uso medicinal ou farmacêutico significativo.`;
         case 27: // Tem alguma aplicação na indústria alimentícia?
           return realBool
-            ? `O ${el.name} é utilizado no processamento de alimentos, conservação, aditivos, suplementação nutricional ou embalagens alimentares.`
-            : `O ${el.name} não possui uso aprovado ou comum na indústria de alimentos.`;
+            ? `O <strong>${el.name}</strong> participa da preparação, conservação ou embalagem de alimentos e bebidas que consumimos!`
+            : `O <strong>${el.name}</strong> não é utilizado na indústria de alimentos.`;
         case 28: // Faz parte da composição do sal de cozinha ou fertilizantes?
           return realBool
-            ? `O ${el.name} é um dos constituintes essenciais do sal de cozinha (NaCl) ou dos principais fertilizantes agrícolas (NPK, sulfatos, calagem).`
-            : `O ${el.name} não entra na composição do sal de cozinha nem nos adubos e fertilizantes agrícolas comuns.`;
+            ? `O <strong>${el.name}</strong> está na mesa ou no campo: forma o sal de cozinha (NaCl) ou os adubos essenciais que fazem as plantações crescerem fortes!`
+            : `O <strong>${el.name}</strong> não integra a fórmula do sal de cozinha nem os fertilizantes agrícolas usuais.`;
         case 29: // É usado na fabricação de lâmpadas ou iluminação?
           return realBool
-            ? `O ${el.name} é empregado no preenchimento de lâmpadas de descarga, vapores luminosos, letreiros ou filamentos de iluminação.`
-            : `O ${el.name} não é utilizado na confecção de lâmpadas ou fontes de iluminação.`;
+            ? `O <strong>${el.name}</strong> faz brilhar: é usado para preencher lâmpadas especiais, letreiros iluminados ou filamentos de luz!`
+            : `O <strong>${el.name}</strong> não é utilizado na fabricação de lâmpadas ou letreiros luminosos.`;
         default:
-          return `Propriedade confirmada pelas características químicas e industriais do elemento ${el.name}.`;
+          return `Propriedade confirmada pelas características químicas fascinantes do elemento <strong>${el.name}</strong>.`;
       }
     }
 
@@ -2877,20 +3270,48 @@
     function handleAskQuestionAction() {
       if (!isMyTurn || gameOver) return;
 
-      const qIndex = parseInt(document.getElementById("questionSelect").value);
-      if (qIndex === -1 || usedQuestionsSet.has(qIndex)) {
-        alert("Esta pergunta já foi utilizada ou não há perguntas disponíveis!");
-        return;
+      let questionText = "";
+      let qIndex = -1;
+
+      if (questionInputMode === "predefined") {
+        qIndex = parseInt(document.getElementById("questionSelect").value);
+        if (qIndex === -1 || usedQuestionsSet.has(qIndex)) {
+          alert("Esta pergunta já foi utilizada ou não há perguntas disponíveis!");
+          return;
+        }
+        questionText = QUESTIONS[qIndex];
+        usedQuestionsSet.add(qIndex);
+        populateQuestionSelect();
+      } else {
+        const inputEl = document.getElementById("customQuestionInput");
+        const rawText = (inputEl.value || "").trim();
+        if (rawText.length < 3) {
+          alert("Por favor, escreva uma pergunta de Sim ou Não válida.");
+          inputEl.focus();
+          return;
+        }
+        questionText = rawText.endsWith("?") ? rawText : rawText + "?";
+        inputEl.value = ""; // limpa para o próximo turno
+
+        // Verifica se a pergunta digitada coincide com alguma das 30 perguntas conhecidas
+        const matchedIdx = QUESTIONS.findIndex(q => q.toLowerCase() === questionText.toLowerCase());
+        if (matchedIdx !== -1) {
+          qIndex = matchedIdx;
+          usedQuestionsSet.add(matchedIdx);
+          populateQuestionSelect();
+        }
       }
 
-      const questionText = QUESTIONS[qIndex];
-
-      // MARCA A PERGUNTA COMO USADA GLOBALMENTE (SEM REPETIÇÃO)
-      usedQuestionsSet.add(qIndex);
-      populateQuestionSelect();
-
       if (gameMode === "local") {
-        const answerBool = opponentSecret.q[qIndex];
+        let answerBool = false;
+
+        if (qIndex >= 0) {
+          answerBool = opponentSecret.q[qIndex];
+        } else {
+          // Análise inteligente da pergunta customizada para responder sobre o elemento da CPU
+          answerBool = evaluateCustomQuestionForElement(questionText, opponentSecret);
+        }
+
         const answerStr = answerBool ? "SIM" : "NÃO";
 
         showMyQuestionBanner(questionText, answerStr);
@@ -2907,11 +3328,10 @@
         const oppRole = (myRole === "player1" ? "player2" : "player1");
         window._handledPendingAnswer = false;
 
-        // Desabilita botões temporariamente
         document.getElementById("btnAsk").disabled = true;
         document.getElementById("btnToggleGuess").disabled = true;
 
-        // Envia pergunta pendente para o oponente responder no modal
+        // Envia pergunta (pronta ou customizada) para o oponente responder no modal
         roomRef.update({
           pendingQuestion: {
             author: myRole,
@@ -2931,6 +3351,48 @@
           "📨"
         );
       }
+    }
+
+    // Avaliador inteligente para perguntas personalizadas no modo contra o computador
+    function evaluateCustomQuestionForElement(text, el) {
+      const t = text.toLowerCase();
+      // metal
+      if (t.includes("metal de transição")) return el.q[5];
+      if (t.includes("não-metal") || t.includes("ametal")) return el.q[2];
+      if (t.includes("semimetal") || t.includes("metaloide")) return el.q[3];
+      if (t.includes("metal")) return el.q[1];
+      // estado físico
+      if (t.includes("gás nobre")) return el.q[4];
+      if (t.includes("gás") || t.includes("gasoso")) return el.q[12];
+      if (t.includes("líquido")) return el.q[11];
+      if (t.includes("sólido")) return el.q[10];
+      // localização periódica
+      if (t.includes("grupo 1") || t.includes("grupo 2") || t.includes("família 1") || t.includes("família 2")) return el.q[6];
+      if (t.includes("período 1") || t.includes("período 2") || t.includes("período 3")) return el.q[7];
+      if (t.includes("próton") || t.includes("atômico")) return el.q[8];
+      if (t.includes("massa")) return el.q[9];
+      // ocorrência
+      if (t.includes("ar") || t.includes("atmosfera")) return el.q[13];
+      if (t.includes("mar") || t.includes("oceano")) return el.q[14];
+      if (t.includes("corpo") || t.includes("humano")) return el.q[15];
+      if (t.includes("radioativ")) return el.q[16];
+      if (t.includes("água")) return el.q[17];
+      if (t.includes("ímã") || t.includes("magnétic")) return el.q[18];
+      if (t.includes("crosta") || t.includes("abundante")) return el.q[20];
+      // usos
+      if (t.includes("construção")) return el.q[21];
+      if (t.includes("eletrônic") || t.includes("computador") || t.includes("chip") || t.includes("celular")) return el.q[22];
+      if (t.includes("embalagem") || t.includes("panela") || t.includes("lata") || t.includes("utensílio")) return el.q[23];
+      if (t.includes("combustível") || t.includes("foguete") || t.includes("energia")) return el.q[24];
+      if (t.includes("bateria") || t.includes("pilha")) return el.q[25];
+      if (t.includes("medic") || t.includes("remédio") || t.includes("hospital") || t.includes("farmácia")) return el.q[26];
+      if (t.includes("comida") || t.includes("alimento") || t.includes("alimentíci")) return el.q[27];
+      if (t.includes("sal") || t.includes("fertilizante") || t.includes("adubo")) return el.q[28];
+      if (t.includes("lâmpada") || t.includes("ilumina") || t.includes("luz")) return el.q[29];
+
+      // fallback: se o nome ou símbolo for citado diretamente
+      if (t.includes(el.name.toLowerCase()) || t.includes(el.sym.toLowerCase())) return true;
+      return false;
     }
 
     function submitGuessAction(guessedElement) {
@@ -3056,7 +3518,7 @@
 
       showBlockOverlay(
         "Vez da Inteligência Artificial",
-        "A IA está analisando as propriedades químicas e formulando uma pergunta...",
+        "O computador está pensando na melhor pergunta para desvendar seu elemento...",
         "🤖"
       );
 
@@ -3368,6 +3830,7 @@
 
       document.getElementById("revealFact").textContent = winningElement.fact || "Elemento fascinante da tabela periódica!";
 
+      registerMatchFinished(isWinner, mySecret ? mySecret.sym : null, opponentSecret ? opponentSecret.sym : (p2El ? p2El.sym : null), winnerName);
       modal.classList.remove("hidden");
     }
   </script>
