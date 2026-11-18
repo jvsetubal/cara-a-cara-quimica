@@ -2818,10 +2818,10 @@
         const isDiscovered = seen.has(el.sym);
         const card = document.createElement("div");
         card.className = "element-card-album" + (isDiscovered ? " discovered" : "");
-        card.title = isDiscovered ? `${el.name} (${el.sym}) - Descoberto! ${el.fact ? '💡 ' + el.fact : ''}` : `Elemento ${el.sym} - Ainda não descoberto. Jogue para revelar!`;
+        card.title = isDiscovered ? `${el.name} (${el.sym}) - Descoberto! ${el.fact ? '💡 ' + el.fact : ''}` : `Elemento secreto - Ainda não descoberto. Jogue para revelar!`;
         card.innerHTML = `
-          <span class="album-num">${el.num}</span>
-          <div class="album-sym">${el.sym}</div>
+          ${isDiscovered ? `<span class="album-num">${el.num}</span>` : ''}
+          <div class="album-sym">${isDiscovered ? el.sym : '?'}</div>
           <div class="album-name">${isDiscovered ? el.name : '???'}</div>
         `;
         grid.appendChild(card);
@@ -2994,44 +2994,98 @@
     /* =========================================================
        MATCHMAKING: procura sala aberta no Firebase
        ========================================================= */
+    // Referência ao intervalo de matchmaking (para cancelar se necessário)
+    let _findMatchInterval = null;
+
+    function cancelFindMatch() {
+      if (_findMatchInterval) {
+        clearInterval(_findMatchInterval);
+        _findMatchInterval = null;
+      }
+      const btn = document.getElementById("btnFindMatch");
+      const statusEl = document.getElementById("findMatchStatus");
+      btn.disabled = false;
+      btn.textContent = "🔍 Procurar Partida";
+      btn.onclick = findOpenMatch;
+      statusEl.style.display = "none";
+    }
+
     function findOpenMatch() {
       if (!db) { alert("Sem conexão com o servidor."); return; }
       const btn = document.getElementById("btnFindMatch");
       const statusEl = document.getElementById("findMatchStatus");
-      btn.disabled = true;
-      statusEl.style.display = "block";
-      statusEl.textContent = "🔍 Procurando partidas abertas...";
 
-      const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
-      db.ref("rooms").orderByChild("status").equalTo("waiting").once("value").then(snapshot => {
-        const rooms = snapshot.val();
-        let foundCode = null;
-        if (rooms) {
-          for (const [code, room] of Object.entries(rooms)) {
-            if (room.created && room.created > tenMinutesAgo && !room.player2) {
-              foundCode = code;
-              break;
+      const MAX_WAIT_MS = 2 * 60 * 1000; // 2 minutos
+      const POLL_INTERVAL_MS = 5000;     // checar a cada 5 segundos
+      const startTime = Date.now();
+
+      btn.disabled = false;
+      btn.textContent = "❌ Cancelar Busca";
+      btn.onclick = cancelFindMatch;
+      statusEl.style.display = "block";
+
+      function updateCountdown() {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, Math.ceil((MAX_WAIT_MS - elapsed) / 1000));
+        const mins = String(Math.floor(remaining / 60)).padStart(2, '0');
+        const secs = String(remaining % 60).padStart(2, '0');
+        return `${mins}:${secs}`;
+      }
+
+      function attemptFind() {
+        const elapsed = Date.now() - startTime;
+        if (elapsed >= MAX_WAIT_MS) {
+          // Tempo esgotado — cria sala nova
+          clearInterval(_findMatchInterval);
+          _findMatchInterval = null;
+          statusEl.textContent = "⏱️ Tempo esgotado. Criando uma nova sala para aguardar...";
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = "🔍 Procurar Partida";
+            btn.onclick = findOpenMatch;
+            statusEl.style.display = "none";
+            createOnlineRoom();
+          }, 1200);
+          return;
+        }
+
+        const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+        db.ref("rooms").orderByChild("status").equalTo("waiting").once("value").then(snapshot => {
+          // Se o usuário cancelou durante a busca, ignorar resultado
+          if (!_findMatchInterval) return;
+
+          const rooms = snapshot.val();
+          let foundCode = null;
+          if (rooms) {
+            for (const [code, room] of Object.entries(rooms)) {
+              if (room.created && room.created > tenMinutesAgo && !room.player2) {
+                foundCode = code;
+                break;
+              }
             }
           }
-        }
-        if (foundCode) {
-          statusEl.textContent = `✅ Partida encontrada! Entrando na sala ${foundCode}...`;
-          setTimeout(() => {
-            joinOnlineRoom(foundCode);
-            btn.disabled = false;
-          }, 1000);
-        } else {
-          statusEl.textContent = "Nenhuma partida aberta encontrada. Criando uma nova sala...";
-          setTimeout(() => {
-            createOnlineRoom();
-            btn.disabled = false;
-            statusEl.style.display = "none";
-          }, 1200);
-        }
-      }).catch(err => {
-        statusEl.textContent = "Erro ao procurar: " + err.message;
-        btn.disabled = false;
-      });
+          if (foundCode) {
+            clearInterval(_findMatchInterval);
+            _findMatchInterval = null;
+            statusEl.textContent = `✅ Partida encontrada! Entrando na sala ${foundCode}...`;
+            setTimeout(() => {
+              btn.disabled = false;
+              btn.textContent = "🔍 Procurar Partida";
+              btn.onclick = findOpenMatch;
+              statusEl.style.display = "none";
+              joinOnlineRoom(foundCode);
+            }, 1000);
+          } else {
+            statusEl.textContent = `🔍 Procurando adversário... ${updateCountdown()}`;
+          }
+        }).catch(err => {
+          statusEl.textContent = "⚠️ Erro ao procurar: " + err.message;
+        });
+      }
+
+      // Primeira tentativa imediata, depois a cada 5s
+      attemptFind();
+      _findMatchInterval = setInterval(attemptFind, POLL_INTERVAL_MS);
     }
 
     /* =========================================================
