@@ -3271,8 +3271,8 @@
         // Se a pergunta foi feita pelo adversário e direcionada para mim responder
         if (data.pendingQuestion.target === myRole) {
           hideBlockOverlay();
-          openAnswerModal(data.pendingQuestion.qIndex, data.pendingQuestion.authorName || "Adversário", (validatedAnswerStr) => {
-            // Ao validar a resposta (mesmo com correção), escreve a resposta no Firebase
+          openAnswerModal(data.pendingQuestion.qIndex, data.pendingQuestion.authorName || "Adversário", data.pendingQuestion.questionText, (validatedAnswerStr) => {
+            // Ao validar a resposta, escreve a resposta no Firebase
             roomRef.update({
               "pendingQuestion/answered": true,
               "pendingQuestion/answer": validatedAnswerStr
@@ -3490,17 +3490,19 @@
     /* ==========================================================================
        MODAL DE RESPOSTA DO JOGADOR (SIM / NÃO COM CORREÇÃO E EXPLICAÇÃO)
        ========================================================================= */
-    function openAnswerModal(qIndex, authorName, onFinished) {
+    function openAnswerModal(qIndex, authorName, customText, onFinished) {
+      const qText = (qIndex >= 0 && QUESTIONS[qIndex]) ? QUESTIONS[qIndex] : (customText || "Pergunta do adversário");
+
       currentPendingQuestion = {
-        qIndex: qIndex,
-        questionText: QUESTIONS[qIndex],
+        qIndex: (typeof qIndex === "number") ? qIndex : -1,
+        questionText: qText,
         authorName: authorName,
         onFinished: onFinished
       };
 
       document.getElementById("modalAuthorBadge").textContent = `${authorName.toUpperCase()} PERGUNTOU`;
       document.getElementById("modalMySecretName").textContent = `${mySecret.name} (${mySecret.sym})`;
-      document.getElementById("modalQuestionText").textContent = `"${QUESTIONS[qIndex]}"`;
+      document.getElementById("modalQuestionText").textContent = `"${qText}"`;
 
       document.getElementById("answerChoiceBtns").style.display = "grid";
       document.getElementById("answerCorrectionBox").style.display = "none";
@@ -4073,7 +4075,7 @@
 
       hideBlockOverlay();
 
-      openAnswerModal(bestQ, "Inteligência Artificial", (validatedAnswerStr) => {
+      openAnswerModal(bestQ, "Computador", QUESTIONS[bestQ], (validatedAnswerStr) => {
         const validatedBool = (validatedAnswerStr === "SIM");
 
         cpuCandidates = cpuCandidates.filter(c => c.q[bestQ] === validatedBool);
