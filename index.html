@@ -3289,6 +3289,7 @@
     }
 
     function goToStartScreen() {
+      cancelFindMatch();
       if (roomRef) {
         roomRef.off();
         roomRef = null;
@@ -3328,10 +3329,14 @@
       }
       const btn = document.getElementById("btnFindMatch");
       const statusEl = document.getElementById("findMatchStatus");
-      btn.disabled = false;
-      btn.textContent = "🔍 Procurar Partida";
-      btn.onclick = findOpenMatch;
-      statusEl.style.display = "none";
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "🔍 Procurar Partida";
+        btn.onclick = findOpenMatch;
+      }
+      if (statusEl) {
+        statusEl.style.display = "none";
+      }
     }
 
     function findOpenMatch() {
@@ -3340,13 +3345,14 @@
       const statusEl = document.getElementById("findMatchStatus");
 
       const MAX_WAIT_MS = 2 * 60 * 1000; // 2 minutos
-      const POLL_INTERVAL_MS = 5000;     // checar a cada 5 segundos
+      const POLL_INTERVAL_MS = 4000;     // checar a cada 4 segundos
       const startTime = Date.now();
 
       btn.disabled = false;
       btn.textContent = "❌ Cancelar Busca";
       btn.onclick = cancelFindMatch;
       statusEl.style.display = "block";
+      statusEl.textContent = "🔍 Procurando jogadores disponíveis...";
 
       function updateCountdown() {
         const elapsed = Date.now() - startTime;
@@ -3360,13 +3366,10 @@
         const elapsed = Date.now() - startTime;
         if (elapsed >= MAX_WAIT_MS) {
           // Tempo esgotado — cria sala nova
-          clearInterval(_findMatchInterval);
-          _findMatchInterval = null;
-          statusEl.textContent = "⏱️ Tempo esgotado. Criando uma nova sala para aguardar...";
+          cancelFindMatch();
+          statusEl.style.display = "block";
+          statusEl.textContent = "⏱️ Tempo limite atingido. Criando uma sala para aguardar jogadores...";
           setTimeout(() => {
-            btn.disabled = false;
-            btn.textContent = "🔍 Procurar Partida";
-            btn.onclick = findOpenMatch;
             statusEl.style.display = "none";
             createOnlineRoom();
           }, 1200);
@@ -3374,40 +3377,48 @@
         }
 
         const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
-        db.ref("rooms").orderByChild("status").equalTo("waiting").once("value").then(snapshot => {
-          // Se o usuário cancelou durante a busca, ignorar resultado
-          if (!_findMatchInterval) return;
+
+        // Leitura direta de /rooms (compatível com qualquer regra do Firebase RTDB)
+        db.ref("rooms").once("value").then(snapshot => {
+          if (!_findMatchInterval) return; // busca cancelada
 
           const rooms = snapshot.val();
           let foundCode = null;
+
           if (rooms) {
-            for (const [code, room] of Object.entries(rooms)) {
-              if (room.created && room.created > tenMinutesAgo && !room.player2) {
+            // Varre as salas procurando uma aberta recente e sem jogador 2
+            for (const [code, r] of Object.entries(rooms)) {
+              if (
+                r &&
+                r.status === "waiting" &&
+                r.created &&
+                r.created > tenMinutesAgo &&
+                (!r.player2 || !r.player2.ready && !r.player2.element && r.status === "waiting")
+              ) {
                 foundCode = code;
                 break;
               }
             }
           }
+
           if (foundCode) {
-            clearInterval(_findMatchInterval);
-            _findMatchInterval = null;
+            cancelFindMatch();
+            statusEl.style.display = "block";
             statusEl.textContent = `✅ Partida encontrada! Entrando na sala ${foundCode}...`;
             setTimeout(() => {
-              btn.disabled = false;
-              btn.textContent = "🔍 Procurar Partida";
-              btn.onclick = findOpenMatch;
               statusEl.style.display = "none";
               joinOnlineRoom(foundCode);
-            }, 1000);
+            }, 800);
           } else {
-            statusEl.textContent = `🔍 Procurando adversário... ${updateCountdown()}`;
+            statusEl.textContent = `🔍 Procurando adversário... (${updateCountdown()})`;
           }
         }).catch(err => {
-          statusEl.textContent = "⚠️ Erro ao procurar: " + err.message;
+          console.error("Erro no matchmaking:", err);
+          statusEl.textContent = "⚠️ Verificando rede... (" + updateCountdown() + ")";
         });
       }
 
-      // Primeira tentativa imediata, depois a cada 5s
+      // Primeira tentativa imediata, depois repete a cada POLL_INTERVAL_MS
       attemptFind();
       _findMatchInterval = setInterval(attemptFind, POLL_INTERVAL_MS);
     }
