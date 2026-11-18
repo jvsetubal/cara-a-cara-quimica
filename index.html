@@ -423,6 +423,25 @@
       box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
     }
 
+    .pick-card.locked-element {
+      opacity: 0.35;
+      filter: grayscale(85%);
+      cursor: not-allowed !important;
+      position: relative;
+      background: #070b12 !important;
+      border: 1px dashed rgba(255, 255, 255, 0.1) !important;
+    }
+    .pick-card.locked-element:hover {
+      transform: none !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      box-shadow: none !important;
+    }
+    .pick-lock-badge {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
     .pick-symbol {
       font-size: 22px;
       font-weight: 800;
@@ -2591,9 +2610,19 @@
     function getSeenElementsSet() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY_SEEN_ELEMENTS);
-        if (raw) return new Set(JSON.parse(raw));
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const set = new Set(parsed);
+          set.add("H"); // O Hidrogênio é sempre garantido como elemento inicial desbloqueado
+          return set;
+        }
       } catch (e) {}
-      return new Set();
+      // Por padrão de fábrica: SOMENTE o Hidrogênio ("H") começa desbloqueado!
+      const initialSet = new Set(["H"]);
+      try {
+        localStorage.setItem(STORAGE_KEY_SEEN_ELEMENTS, JSON.stringify(["H"]));
+      } catch(e) {}
+      return initialSet;
     }
 
     function registerElementSeen(sym) {
@@ -3144,21 +3173,34 @@
       const grid = document.getElementById("pickGrid");
       grid.innerHTML = "";
 
+      const unlockedSet = getSeenElementsSet();
+
       ELEMENTS.forEach(el => {
+        const isUnlocked = unlockedSet.has(el.sym);
         const card = document.createElement("div");
-        card.className = "pick-card";
+        card.className = "pick-card" + (isUnlocked ? "" : " locked-element");
+        card.id = `pick-card-${el.sym}`;
+
         card.innerHTML = `
           <div style="font-size: 10px; color: var(--text-muted);">${el.num}</div>
-          <div class="pick-symbol">${el.sym}</div>
-          <div class="pick-name">${el.name}</div>
+          <div class="pick-symbol">${isUnlocked ? el.sym : '🔒'}</div>
+          <div class="pick-name">${isUnlocked ? el.name : 'Bloqueado'}</div>
+          ${isUnlocked ? '' : '<div class="pick-lock-badge">Jogue p/ liberar</div>'}
         `;
-        card.onclick = () => {
-          document.querySelectorAll(".pick-card").forEach(c => c.classList.remove("selected"));
-          card.classList.add("selected");
-          tempSelectedElement = el;
-          document.getElementById("pickSelectionLabel").innerHTML = `Selecionado: <strong>${el.name} (${el.sym})</strong>`;
-          confirmBtn.disabled = false;
-        };
+
+        if (isUnlocked) {
+          card.onclick = () => {
+            document.querySelectorAll(".pick-card").forEach(c => c.classList.remove("selected"));
+            card.classList.add("selected");
+            tempSelectedElement = el;
+            document.getElementById("pickSelectionLabel").innerHTML = `Selecionado: <strong>${el.name} (${el.sym})</strong>`;
+            confirmBtn.disabled = false;
+          };
+        } else {
+          card.onclick = () => {
+            alert(`O elemento ${el.name} (${el.sym}) ainda está bloqueado! Jogue partidas para descobri-lo e desbloqueá-lo no seu álbum.`);
+          };
+        }
         grid.appendChild(card);
       });
 
@@ -3518,17 +3560,14 @@
       if (!currentPendingQuestion) return;
 
       const qIndex = currentPendingQuestion.qIndex;
-      // Se for pergunta personalizada livre (qIndex === -1), usamos a resposta escolhida pelo jogador!
-      if (qIndex === -1 || typeof qIndex === "undefined") {
-        hideAnswerModal();
-        const answerStr = chosenBool ? "SIM" : "NÃO";
-        if (currentPendingQuestion.onFinished) {
-          currentPendingQuestion.onFinished(answerStr);
-        }
-        return;
-      }
+      let realBool = false;
+      const isCustom = (qIndex === -1 || typeof qIndex === "undefined");
 
-      const realBool = mySecret.q[qIndex];
+      if (isCustom) {
+        realBool = evaluateCustomQuestionForElement(currentPendingQuestion.questionText, mySecret);
+      } else {
+        realBool = mySecret.q[qIndex];
+      }
 
       if (chosenBool === realBool) {
         hideAnswerModal();
@@ -3543,7 +3582,13 @@
 
         const realStr = realBool ? "SIM" : "NÃO";
         const chosenStr = chosenBool ? "SIM" : "NÃO";
-        const explanation = getScientificExplanation(mySecret, qIndex, realBool);
+        let explanation = "";
+
+        if (isCustom) {
+          explanation = `Para a pergunta <em>"${currentPendingQuestion.questionText}"</em>, as propriedades químicas do <strong>${mySecret.name} (${mySecret.sym})</strong> correspondem a <strong style="color: ${realBool ? '#38bdf8' : '#f472b6'};">${realStr}</strong> (ele possui número atômico ${mySecret.num}, massa ${mySecret.mass.toFixed(1)} u, período ${mySecret.period} e família ${mySecret.group}).`;
+        } else {
+          explanation = getScientificExplanation(mySecret, qIndex, realBool);
+        }
 
         explanationEl.innerHTML = `
           Você marcou <strong>${chosenStr}</strong>, mas de acordo com as propriedades do <strong>${mySecret.name} (${mySecret.sym})</strong> a resposta exata é <strong style="color: ${realBool ? '#38bdf8' : '#f472b6'};">${realStr}</strong>.<br><br>
@@ -3558,8 +3603,10 @@
       hideAnswerModal();
       if (!currentPendingQuestion) return;
       const qIndex = currentPendingQuestion.qIndex;
-      let realBool = true;
-      if (qIndex >= 0 && mySecret.q) {
+      let realBool = false;
+      if (qIndex === -1 || typeof qIndex === "undefined") {
+        realBool = evaluateCustomQuestionForElement(currentPendingQuestion.questionText, mySecret);
+      } else if (mySecret.q) {
         realBool = mySecret.q[qIndex];
       }
       const answerStr = realBool ? "SIM" : "NÃO";
@@ -3567,8 +3614,7 @@
         currentPendingQuestion.onFinished(answerStr);
       }
     }
-
-    function getScientificExplanation(el, qIdx, realBool) {
+function getScientificExplanation(el, qIdx, realBool) {
       if (qIdx < 0) {
         return `Sobre o <strong>${el.name} (${el.sym})</strong>: ele tem número atômico ${el.num}, massa de ${el.mass.toFixed(1)} u e fica no período ${el.period}, grupo ${el.group}.`;
       }
