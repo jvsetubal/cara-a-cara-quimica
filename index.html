@@ -1898,6 +1898,330 @@
       line-height: 1.5;
     }
 
+    /* =========================================================================
+       MELHORIAS DE RESPONSIVIDADE E EXPERIÊNCIA MOBILE / TABLET
+       ========================================================================= */
+    @media (max-width: 768px) {
+      header {
+        padding: 10px 14px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+
+      .brand {
+        justify-content: center;
+      }
+
+      .brand h1 {
+        font-size: 17px;
+      }
+
+      .header-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+      }
+
+      .header-actions .btn-stats-badge,
+      .header-actions .btn-header {
+        padding: 6px 10px;
+        font-size: 11px;
+        flex: 1 1 auto;
+        min-height: 36px;
+        justify-content: center;
+      }
+
+      .room-badge {
+        width: 100%;
+        justify-content: space-between;
+        margin-bottom: 2px;
+      }
+
+      /* Tela Início / Welcome */
+      .welcome-card {
+        padding: 24px 16px;
+        border-radius: 16px;
+      }
+
+      .welcome-card h2 {
+        font-size: 22px;
+      }
+
+      .welcome-card p {
+        font-size: 13px;
+        margin-bottom: 20px;
+      }
+
+      .btn-mode {
+        padding: 14px;
+        gap: 12px;
+      }
+
+      .mode-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 24px;
+      }
+
+      .mode-title {
+        font-size: 15px;
+      }
+
+      .mode-desc {
+        font-size: 12px;
+      }
+
+      /* Lobby Multijogador */
+      #screenLobby {
+        padding: 20px 12px;
+      }
+
+      .lobby-card {
+        padding: 20px 16px;
+        border-radius: 14px;
+      }
+
+      .lobby-card h2 {
+        font-size: 20px;
+      }
+
+      .lobby-input-row {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .lobby-input-row .lobby-input {
+        width: 100%;
+        font-size: 14px;
+        padding: 11px;
+      }
+
+      .lobby-input-row button {
+        width: 100%;
+        padding: 12px;
+      }
+
+      /* Tela de Escolha de Elemento (Picking) */
+      #screenPicking {
+        padding: 14px 10px;
+      }
+
+      .pick-container {
+        padding: 16px 12px;
+        border-radius: 14px;
+      }
+
+      #pickHeading {
+        font-size: 18px !important;
+      }
+
+      .pick-grid {
+        grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+        gap: 8px;
+        max-height: 52vh;
+        padding: 4px;
+      }
+
+      .pick-card {
+        padding: 8px 6px;
+        min-height: 86px;
+      }
+
+      .pick-symbol {
+        font-size: 22px;
+      }
+
+      .pick-name {
+        font-size: 10px;
+      }
+
+      /* Tela do Tabuleiro Principal (screenGame) */
+      #screenGame {
+        padding: 10px;
+        gap: 14px;
+      }
+
+      .board-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+      }
+
+      .secret-display {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .board-instructions {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+
+      .board-instructions span {
+        font-size: 11px !important;
+        line-height: 1.35;
+      }
+
+      .board-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 8px;
+      }
+
+      .element-card {
+        min-height: 96px;
+        padding: 8px 6px;
+      }
+
+      .card-symbol {
+        font-size: 26px;
+        margin: 2px 0;
+      }
+
+      .card-name {
+        font-size: 10.5px;
+      }
+
+      .card-meta {
+        font-size: 9px;
+        padding-top: 3px;
+        margin-top: 4px;
+      }
+
+      .category-tag {
+        font-size: 8px;
+        padding: 1px 4px;
+      }
+
+      /* Banner da última pergunta */
+      .info-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 12px;
+      }
+
+      #myQuestionAnswerBadge {
+        margin-left: 0 !important;
+        align-self: flex-start;
+      }
+
+      .banner-body-text {
+        font-size: 12.5px;
+      }
+
+      /* Sidebar e Controles de Ação */
+      .sidebar {
+        width: 100%;
+        gap: 12px;
+      }
+
+      .panel {
+        padding: 14px 12px;
+        border-radius: 10px;
+      }
+
+      .q-tab-btn {
+        padding: 9px 6px;
+        font-size: 11px;
+      }
+
+      select.question-select,
+      .custom-question-input {
+        font-size: 13px;
+        padding: 11px 10px;
+      }
+
+      button.btn-action {
+        padding: 12px 14px;
+        font-size: 13px;
+        min-height: 44px;
+      }
+
+      .btn-pass-turn-premium {
+        padding: 14px;
+        font-size: 13px;
+      }
+
+      /* Modais Responsivos (Tutorial, Álbum, Resposta, Vitória) */
+      .modal-overlay {
+        padding: 12px;
+      }
+
+      .tutorial-modal-card,
+      .collection-modal-card,
+      .answer-modal-card,
+      .modal-card {
+        padding: 18px 14px;
+        width: 96%;
+        max-width: 100%;
+        border-radius: 14px;
+      }
+
+      .stats-summary-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px;
+      }
+
+      .stat-card-box {
+        padding: 10px 8px;
+      }
+
+      .stat-card-number {
+        font-size: 20px;
+      }
+
+      .discovered-elements-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+        gap: 6px;
+        max-height: 44vh;
+      }
+
+      .element-card-album {
+        padding: 8px 4px;
+      }
+
+      .album-sym {
+        font-size: 17px;
+      }
+
+      .album-name {
+        font-size: 9px;
+        max-width: 64px;
+      }
+
+      .answer-choice-btns {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .btn-choose-yes,
+      .btn-choose-no {
+        width: 100%;
+        padding: 13px;
+        font-size: 15px;
+      }
+
+      .elements-reveal-container {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .board-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+      .pick-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
   </style>
 </head>
 <body>
