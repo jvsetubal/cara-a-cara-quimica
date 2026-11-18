@@ -1868,7 +1868,7 @@
   <section id="screenStart" class="screen active">
     <div class="welcome-card">
       <h2>Cara a Cara Químico</h2>
-      <p>Descubra o elemento químico secreto do seu adversário através de <strong>30 perguntas estratégicas sem repetição</strong> de Sim ou Não. Quem adivinhar primeiro vence!</p>
+      <p>Um jogo de dedução e estratégia com os elementos da Tabela Periódica. Escolha seu elemento secreto, faça perguntas de <strong>Sim ou Não</strong>, elimine candidatos e descubra o elemento do adversário antes dele!</p>
 
       <div class="mode-options">
         <div class="btn-mode" onclick="startLocalFlow()">
@@ -2151,7 +2151,7 @@
       <!-- Box de Curiosidade e Fato Químico Reformulado -->
       <div id="answerCorrectionBox" class="answer-curiosity-box" style="display: none;">
         <div class="curiosity-box-title">
-          <span>💡</span> Você Sabia? Curiosidade Científica:
+          <span>💡</span> Você Sabia?
         </div>
         <div class="curiosity-box-text" id="correctionExplanationText">
           <!-- Explicação / Fato preenchido via JS -->
@@ -3516,6 +3516,16 @@
       if (!currentPendingQuestion) return;
 
       const qIndex = currentPendingQuestion.qIndex;
+      // Se for pergunta personalizada livre (qIndex === -1), usamos a resposta escolhida pelo jogador!
+      if (qIndex === -1 || typeof qIndex === "undefined") {
+        hideAnswerModal();
+        const answerStr = chosenBool ? "SIM" : "NÃO";
+        if (currentPendingQuestion.onFinished) {
+          currentPendingQuestion.onFinished(answerStr);
+        }
+        return;
+      }
+
       const realBool = mySecret.q[qIndex];
 
       if (chosenBool === realBool) {
@@ -3526,7 +3536,7 @@
         }
       } else {
         document.getElementById("answerChoiceBtns").style.display = "none";
-        const correctionBox = document.getElementById("answerCorrectionBox");
+        const curiosityBox = document.getElementById("answerCorrectionBox");
         const explanationEl = document.getElementById("correctionExplanationText");
 
         const realStr = realBool ? "SIM" : "NÃO";
@@ -3534,18 +3544,22 @@
         const explanation = getScientificExplanation(mySecret, qIndex, realBool);
 
         explanationEl.innerHTML = `
-          Você respondeu <strong>${chosenStr}</strong>, mas a resposta correta para o <strong>${mySecret.name} (${mySecret.sym})</strong> é <strong style="color: ${realBool ? '#4ade80' : '#f87171'};">${realStr}</strong>.<br><br>
-          <em>${explanation}</em>
+          Você marcou <strong>${chosenStr}</strong>, mas de acordo com as propriedades do <strong>${mySecret.name} (${mySecret.sym})</strong> a resposta exata é <strong style="color: ${realBool ? '#38bdf8' : '#f472b6'};">${realStr}</strong>.<br><br>
+          ${explanation}
         `;
 
-        correctionBox.style.display = "block";
+        curiosityBox.style.display = "block";
       }
     }
 
     function confirmCorrectionAndProceed() {
       hideAnswerModal();
       if (!currentPendingQuestion) return;
-      const realBool = mySecret.q[currentPendingQuestion.qIndex];
+      const qIndex = currentPendingQuestion.qIndex;
+      let realBool = true;
+      if (qIndex >= 0 && mySecret.q) {
+        realBool = mySecret.q[qIndex];
+      }
       const answerStr = realBool ? "SIM" : "NÃO";
       if (currentPendingQuestion.onFinished) {
         currentPendingQuestion.onFinished(answerStr);
