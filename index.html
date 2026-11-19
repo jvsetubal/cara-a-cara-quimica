@@ -3086,10 +3086,16 @@
 
     // Chaves de armazenamento local (retenção)
     const STORAGE_KEY_TUTORIAL_SEEN = "cara_quimica_tutorial_seen_v1";
-    const STORAGE_KEY_MATCH_STATS = "cara_quimica_stats_v1";
-    const STORAGE_KEY_SEEN_ELEMENTS = "cara_quimica_seen_elements_v1";
+    const STORAGE_KEY_MATCH_STATS = "cara_quimica_stats_v2";
+    const STORAGE_KEY_SEEN_ELEMENTS = "cara_quimica_seen_elements_v2";
     const STORAGE_KEY_PLAYER_NICKNAME = "cara_quimica_nickname_v1";
     const STORAGE_KEY_PLAYER_UID = "cara_quimica_uid_v1";
+
+    // Reset forçado de estatísticas e progresso de versões anteriores (v1) para todos os dispositivos
+    try {
+      localStorage.removeItem("cara_quimica_stats_v1");
+      localStorage.removeItem("cara_quimica_seen_elements_v1");
+    } catch (e) {}
 
     function getPlayerUid() {
       try {
