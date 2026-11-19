@@ -195,6 +195,80 @@
       padding: 40px 20px;
     }
 
+    #screenNickname {
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .nickname-card {
+      background: linear-gradient(145deg, #131b26 0%, #0d1420 100%);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      box-shadow: 0 0 45px rgba(56, 189, 248, 0.15);
+      border-radius: 20px;
+      padding: 40px 32px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      animation: popIn 0.3s ease-out;
+    }
+
+    .nickname-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(168, 85, 247, 0.2));
+      border: 2px solid var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      margin: 0 auto 18px auto;
+      box-shadow: 0 0 24px rgba(56, 189, 248, 0.3);
+    }
+
+    .nickname-card h2 {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #38bdf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nickname-card p {
+      color: var(--text-muted);
+      font-size: 13.5px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .nickname-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .nickname-input-field {
+      background: #090e17;
+      color: #fff;
+      border: 1.5px solid var(--border-color);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      outline: none;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .nickname-input-field:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+    }
+
     .welcome-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -2253,6 +2327,11 @@
         <span>🧪</span> Meu Progresso <span class="badge-num" id="headerElementsSeenCount">0/30</span>
       </button>
 
+      <!-- Badge com o Nickname do Jogador -->
+      <button class="btn-stats-badge" onclick="openChangeNickname()" title="Clique para alterar seu Nickname">
+        <span>👤</span> <span id="headerPlayerNick">Cientista</span>
+      </button>
+
       <!-- Turn indicator -->
       <div id="turnBadge" class="turn-badge player-turn" style="display: none;">
         <span class="pulse-dot"></span>
@@ -2264,9 +2343,31 @@
   </header>
 
   <!-- =========================================================================
+       TELA 0: CRIAÇÃO / DEFINIÇÃO DO NICKNAME
+       ========================================================================= -->
+  <section id="screenNickname" class="screen">
+    <div class="nickname-card">
+      <div class="nickname-avatar">🧪</div>
+      <h2>Identificação do Cientista</h2>
+      <p>Escolha o nome ou apelido com o qual você será reconhecido nas rodadas e partidas online.</p>
+
+      <form id="formNickname" onsubmit="handleSaveNickname(event)">
+        <div class="nickname-input-group">
+          <label style="font-size: 12px; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase;">Seu Apelido / Nome:</label>
+          <input type="text" id="inputPlayerNickname" class="nickname-input-field" placeholder="Ex: Einstein, Marie, Alquimista..." maxlength="18" autocomplete="off" required>
+        </div>
+
+        <button type="submit" class="btn-action btn-primary" style="width: 100%; padding: 13px; font-size: 15px; font-weight: 700;">
+          Continuar para o Menu ➔
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- =========================================================================
        TELA 1: INÍCIO (SELETOR DE MODO)
        ========================================================================= -->
-  <section id="screenStart" class="screen active">
+  <section id="screenStart" class="screen">
     <div class="welcome-card">
       <h2>Cara a Cara Químico</h2>
       <p>Um jogo de dedução e estratégia com os elementos da Tabela Periódica. Escolha seu elemento secreto, faça perguntas de <strong>Sim ou Não</strong>, elimine candidatos e descubra o elemento do adversário antes dele!</p>
@@ -2986,6 +3087,47 @@
     const STORAGE_KEY_TUTORIAL_SEEN = "cara_quimica_tutorial_seen_v1";
     const STORAGE_KEY_MATCH_STATS = "cara_quimica_stats_v1";
     const STORAGE_KEY_SEEN_ELEMENTS = "cara_quimica_seen_elements_v1";
+    const STORAGE_KEY_PLAYER_NICKNAME = "cara_quimica_nickname_v1";
+
+    function getPlayerNickname() {
+      try {
+        const nick = localStorage.getItem(STORAGE_KEY_PLAYER_NICKNAME);
+        if (nick && nick.trim().length > 0) return nick.trim();
+      } catch (e) {}
+      return "";
+    }
+
+    function savePlayerNickname(nick) {
+      try {
+        const clean = (nick || "").trim().substring(0, 18);
+        localStorage.setItem(STORAGE_KEY_PLAYER_NICKNAME, clean);
+        updateNicknameUI();
+      } catch (e) {}
+    }
+
+    function updateNicknameUI() {
+      const nick = getPlayerNickname() || "Cientista";
+      const el = document.getElementById("headerPlayerNick");
+      if (el) el.textContent = nick;
+    }
+
+    function openChangeNickname() {
+      const input = document.getElementById("inputPlayerNickname");
+      if (input) input.value = getPlayerNickname();
+      showScreen("screenNickname");
+    }
+
+    function handleSaveNickname(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById("inputPlayerNickname");
+      const val = input ? input.value.trim() : "";
+      if (val.length < 2) {
+        alert("Por favor, digite um nickname com pelo menos 2 caracteres.");
+        return;
+      }
+      savePlayerNickname(val);
+      showScreen("screenStart");
+    }
 
     function getLocalStats() {
       try {
@@ -3264,7 +3406,14 @@
       const roomBadge = document.getElementById("onlineRoomBadge");
       const subTitle = document.getElementById("headerModeSubtitle");
 
-      if (screenId === "screenStart") {
+      if (screenId === "screenNickname") {
+        turnBadge.style.display = "none";
+        roomBadge.style.display = "none";
+        subTitle.textContent = "Crie seu Nickname";
+        hideBlockOverlay();
+        hideBanner();
+        hideAnswerModal();
+      } else if (screenId === "screenStart") {
         turnBadge.style.display = "none";
         roomBadge.style.display = "none";
         subTitle.textContent = "Dedução da Tabela Periódica";
@@ -3463,7 +3612,16 @@
       console.log('%c  liberarElementos()  → Libera todos os 30 elementos temporariamente', 'color: #4ade80; font-size: 12px;');
       console.log('%c  resetarElementos()  → Volta ao estado inicial (só Hidrogênio)', 'color: #f87171; font-size: 12px;');
       updateStatsHeaderBadge();
+      updateNicknameUI();
       populateQuestionSelect();
+
+      // Se o usuário ainda não tiver nickname, exibe a tela de criação antes do menu
+      const savedNick = getPlayerNickname();
+      if (!savedNick) {
+        showScreen("screenNickname");
+      } else {
+        showScreen("screenStart");
+      }
 
       const urlParams = new URLSearchParams(window.location.search);
       const urlRoom = urlParams.get("room");
@@ -3557,8 +3715,9 @@
       roomCode = code;
       myRole = "player1";
 
+      const myNick = getPlayerNickname() || "Jogador 1";
       const roomData = {
-        player1: { name: "Jogador 1", ready: false, element: null },
+        player1: { name: myNick, ready: false, element: null },
         player2: { name: "Jogador 2", ready: false, element: null },
         turn: "player1",
         status: "waiting",
@@ -3620,7 +3779,8 @@
         updateRoomUrl(roomCode);
 
         const updates = { status: "picking" };
-        updates[`${myRole}/name`] = (myRole === "player1" ? "Jogador 1" : "Jogador 2");
+        const myNick = getPlayerNickname() || (myRole === "player1" ? "Jogador 1" : "Jogador 2");
+        updates[`${myRole}/name`] = myNick;
         updates[`${myRole}/ready`] = false;
         updates[`${myRole}/element`] = null;
 
