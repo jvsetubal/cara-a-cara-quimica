@@ -2343,22 +2343,23 @@
   </header>
 
   <!-- =========================================================================
-       TELA 0: CRIAÇÃO / DEFINIÇÃO DO NICKNAME
+       TELA 0: CRIAÇÃO / LOGIN POR NICKNAME
        ========================================================================= -->
   <section id="screenNickname" class="screen">
     <div class="nickname-card">
       <div class="nickname-avatar">🧪</div>
-      <h2>Identificação do Cientista</h2>
-      <p>Escolha o nome ou apelido com o qual você será reconhecido nas rodadas e partidas online.</p>
+      <h2>Entrar no Laboratório</h2>
+      <p>Digite seu apelido único para acessar seus elementos desbloqueados e estatísticas.</p>
 
       <form id="formNickname" onsubmit="handleSaveNickname(event)">
         <div class="nickname-input-group">
-          <label style="font-size: 12px; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase;">Seu Apelido / Nome:</label>
+          <label style="font-size: 12px; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase;">Seu Apelido / Nickname:</label>
           <input type="text" id="inputPlayerNickname" class="nickname-input-field" placeholder="Ex: Einstein, Marie, Alquimista..." maxlength="18" autocomplete="off" required>
+          <div id="nicknameStatusMsg" style="font-size: 12px; margin-top: 4px; display: none;"></div>
         </div>
 
-        <button type="submit" class="btn-action btn-primary" style="width: 100%; padding: 13px; font-size: 15px; font-weight: 700;">
-          Continuar para o Menu ➔
+        <button type="submit" id="btnSubmitNickname" class="btn-action btn-primary" style="width: 100%; padding: 13px; font-size: 15px; font-weight: 700;">
+          Entrar no Jogo ➔
         </button>
       </form>
     </div>
@@ -3088,6 +3089,20 @@
     const STORAGE_KEY_MATCH_STATS = "cara_quimica_stats_v1";
     const STORAGE_KEY_SEEN_ELEMENTS = "cara_quimica_seen_elements_v1";
     const STORAGE_KEY_PLAYER_NICKNAME = "cara_quimica_nickname_v1";
+    const STORAGE_KEY_PLAYER_UID = "cara_quimica_uid_v1";
+
+    function getPlayerUid() {
+      try {
+        let uid = localStorage.getItem(STORAGE_KEY_PLAYER_UID);
+        if (!uid) {
+          uid = "u_" + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+          localStorage.setItem(STORAGE_KEY_PLAYER_UID, uid);
+        }
+        return uid;
+      } catch (e) {
+        return "u_anon";
+      }
+    }
 
     function getPlayerNickname() {
       try {
@@ -3114,19 +3129,78 @@
     function openChangeNickname() {
       const input = document.getElementById("inputPlayerNickname");
       if (input) input.value = getPlayerNickname();
+      const statusEl = document.getElementById("nicknameStatusMsg");
+      if (statusEl) statusEl.style.display = "none";
       showScreen("screenNickname");
     }
 
     function handleSaveNickname(e) {
       if (e) e.preventDefault();
       const input = document.getElementById("inputPlayerNickname");
-      const val = input ? input.value.trim() : "";
-      if (val.length < 2) {
+      const btn = document.getElementById("btnSubmitNickname");
+      const statusEl = document.getElementById("nicknameStatusMsg");
+
+      const rawVal = input ? input.value.trim() : "";
+      if (rawVal.length < 2) {
         alert("Por favor, digite um nickname com pelo menos 2 caracteres.");
         return;
       }
-      savePlayerNickname(val);
-      showScreen("screenStart");
+
+      // Converte para chave segura sem caracteres proibidos pelo Firebase: . $ # [ ] /
+      const safeKey = rawVal.toLowerCase().replace(/[.#$\[\]\/]/g, "_");
+      const myUid = getPlayerUid();
+
+      if (btn) btn.disabled = true;
+      if (statusEl) {
+        statusEl.style.display = "block";
+        statusEl.style.color = "var(--text-muted)";
+        statusEl.textContent = "Verificando disponibilidade do nickname...";
+      }
+
+      if (!db) {
+        // Fallback offline caso Firebase esteja temporariamente sem conexão
+        savePlayerNickname(rawVal);
+        if (btn) btn.disabled = false;
+        showScreen("screenStart");
+        return;
+      }
+
+      const nickRef = db.ref("nicknames/" + safeKey);
+      nickRef.once("value").then(snapshot => {
+        const data = snapshot.val();
+
+        if (data && data.uid && data.uid !== myUid) {
+          // Nickname já registrado por outro dispositivo
+          if (btn) btn.disabled = false;
+          if (statusEl) {
+            statusEl.style.color = "#f87171";
+            statusEl.textContent = "❌ Este nickname já está em uso por outro jogador! Escolha outro nome.";
+          }
+          return;
+        }
+
+        // Nickname disponível ou pertence a este mesmo jogador (login reconhecido)
+        nickRef.set({
+          nickname: rawVal,
+          uid: myUid,
+          lastLogin: Date.now()
+        }).then(() => {
+          savePlayerNickname(rawVal);
+          if (btn) btn.disabled = false;
+          if (statusEl) statusEl.style.display = "none";
+          showScreen("screenStart");
+        }).catch(err => {
+          console.error("Erro ao registrar nickname:", err);
+          savePlayerNickname(rawVal);
+          if (btn) btn.disabled = false;
+          showScreen("screenStart");
+        });
+      }).catch(err => {
+        console.error("Erro ao verificar nickname:", err);
+        savePlayerNickname(rawVal);
+        if (btn) btn.disabled = false;
+        showScreen("screenStart");
+      });
     }
 
     function getLocalStats() {
@@ -4245,6 +4319,21 @@
       document.getElementById("elimBadge").textContent = `Riscados: ${count} / 30`;
     }
 
+    // Reinicia o tabuleiro do jogador (quando erra um palpite faltando apenas 1 elemento)
+    function resetPlayerBoardOnWrongGuess() {
+      elementEliminatedRound = {};
+      ELEMENTS.forEach(el => {
+        const card = document.getElementById(`card-${el.sym}`);
+        if (card) {
+          card.classList.remove("eliminated");
+          card.classList.remove("locked-eliminated");
+          card.classList.remove("guess-mode");
+        }
+      });
+      updateElimBadge();
+      alert("⚠️ Você arriscou seu último elemento e errou! Seu tabuleiro foi restaurado para você recomeçar sua dedução!");
+    }
+
     /* ==========================================================================
        TELA DE BLOQUEIO TEMPORÁRIA
        ========================================================================== */
@@ -4725,6 +4814,11 @@ function getScientificExplanation(el, qIdx, realBool) {
             showVictoryScreen(true, mySecret, opponentSecret, opponentSecret, "Você");
           }, 1200);
         } else {
+          // Se o jogador errou o palpite tendo apenas 1 elemento restante sem riscar (ou seja, 29 riscados)
+          const remainingElements = ELEMENTS.length - Object.keys(elementEliminatedRound).length;
+          if (remainingElements <= 1) {
+            resetPlayerBoardOnWrongGuess();
+          }
           enterPassTurnPhase();
         }
       } else {
@@ -4761,6 +4855,12 @@ function getScientificExplanation(el, qIdx, realBool) {
               status: "finished"
             });
           } else {
+            // Se o jogador errou o palpite tendo apenas 1 elemento restante sem riscar (ou seja, 29 riscados)
+            const remainingElements = ELEMENTS.length - Object.keys(elementEliminatedRound).length;
+            if (remainingElements <= 1) {
+              resetPlayerBoardOnWrongGuess();
+            }
+
             window._pendingOnlineLog = {
               player: myRole,
               playerName: (myRole === "player1" ? "Jogador 1" : "Jogador 2"),
