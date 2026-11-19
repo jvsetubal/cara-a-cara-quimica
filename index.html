@@ -2738,9 +2738,12 @@
         <div id="revealFact">Carregando curiosidade...</div>
       </div>
 
-      <div style="display: flex; justify-content: center; gap: 12px;">
-        <button class="btn-action btn-primary" style="padding: 11px 32px;" onclick="goToStartScreen()">
-          Voltar ao Menu Principal
+      <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+        <button id="btnRematch" class="btn-action btn-primary" style="padding: 11px 28px;" onclick="handleRematch()">
+          🔄 Jogar Novamente
+        </button>
+        <button class="btn-action" style="padding: 11px 24px;" onclick="goToStartScreen()">
+          Menu Principal
         </button>
       </div>
     </div>
@@ -3608,13 +3611,20 @@
           return;
         }
 
-        myRole = "player2";
+        // Se o jogador 1 saiu da sala ou o slot dele estiver vago, assume player1; senão player2
+        if (!val.player1 || !val.player1.name) {
+          myRole = "player1";
+        } else {
+          myRole = "player2";
+        }
         updateRoomUrl(roomCode);
 
-        roomRef.update({
-          status: "picking",
-          "player2/name": "Jogador 2"
-        });
+        const updates = { status: "picking" };
+        updates[`${myRole}/name`] = (myRole === "player1" ? "Jogador 1" : "Jogador 2");
+        updates[`${myRole}/ready`] = false;
+        updates[`${myRole}/element`] = null;
+
+        roomRef.update(updates);
 
         setupOnlineRoomListener();
         preparePickingScreen(`Entrou na Sala: ${roomCode}`, true, "Sala encontrada! Escolha seu elemento secreto.");
@@ -3683,6 +3693,13 @@
             }
           }
         } else if (data.status === "picking") {
+          // Se o modal de vitória estiver aberto (fim da rodada anterior), fecha-o e vai para picking
+          document.getElementById("victoryModal").classList.add("hidden");
+          if (!document.getElementById("screenPicking").classList.contains("active")) {
+            preparePickingScreen(myRole === "player1" ? `Sala: ${roomCode}` : `Entrou na Sala: ${roomCode}`, true, "Nova partida! Escolha seu elemento secreto.");
+            showScreen("screenPicking");
+          }
+
           const statusBox = document.getElementById("pickStatusMsg");
           const statusText = document.getElementById("pickStatusText");
           statusBox.style.display = "flex";
@@ -3703,7 +3720,8 @@
             statusText.textContent = p2Ready ? "Aguardando Jogador 1 confirmar o elemento..." : "Ambos conectados! Escolha seu elemento.";
           }
 
-          if (p1Ready && p2Ready && myRole === "player1") {
+          // Ambos confirmaram: qualquer um pode acionar o início da partida
+          if (p1Ready && p2Ready) {
             roomRef.update({ status: "playing" });
           }
         } else if (data.status === "playing") {
@@ -4432,45 +4450,94 @@ function getScientificExplanation(el, qIdx, realBool) {
       }
     }
 
-    // Avaliador inteligente para perguntas personalizadas no modo contra o computador
-    function evaluateCustomQuestionForElement(text, el) {
-      const t = text.toLowerCase();
-      // metal
-      if (t.includes("metal de transição")) return el.q[5];
-      if (t.includes("não-metal") || t.includes("ametal")) return el.q[2];
-      if (t.includes("semimetal") || t.includes("metaloide")) return el.q[3];
-      if (t.includes("metal")) return el.q[1];
-      // estado físico
-      if (t.includes("gás nobre")) return el.q[4];
-      if (t.includes("gás") || t.includes("gasoso")) return el.q[12];
-      if (t.includes("líquido")) return el.q[11];
-      if (t.includes("sólido")) return el.q[10];
-      // localização periódica
-      if (t.includes("grupo 1") || t.includes("grupo 2") || t.includes("família 1") || t.includes("família 2")) return el.q[6];
-      if (t.includes("período 1") || t.includes("período 2") || t.includes("período 3")) return el.q[7];
-      if (t.includes("próton") || t.includes("atômico")) return el.q[8];
-      if (t.includes("massa")) return el.q[9];
-      // ocorrência
-      if (t.includes("ar") || t.includes("atmosfera")) return el.q[13];
-      if (t.includes("mar") || t.includes("oceano")) return el.q[14];
-      if (t.includes("corpo") || t.includes("humano")) return el.q[15];
-      if (t.includes("radioativ")) return el.q[16];
-      if (t.includes("água")) return el.q[17];
-      if (t.includes("ímã") || t.includes("magnétic")) return el.q[18];
-      if (t.includes("crosta") || t.includes("abundante")) return el.q[20];
-      // usos
-      if (t.includes("construção")) return el.q[21];
-      if (t.includes("eletrônic") || t.includes("computador") || t.includes("chip") || t.includes("celular")) return el.q[22];
-      if (t.includes("embalagem") || t.includes("panela") || t.includes("lata") || t.includes("utensílio")) return el.q[23];
-      if (t.includes("combustível") || t.includes("foguete") || t.includes("energia")) return el.q[24];
-      if (t.includes("bateria") || t.includes("pilha")) return el.q[25];
-      if (t.includes("medic") || t.includes("remédio") || t.includes("hospital") || t.includes("farmácia")) return el.q[26];
-      if (t.includes("comida") || t.includes("alimento") || t.includes("alimentíci")) return el.q[27];
-      if (t.includes("sal") || t.includes("fertilizante") || t.includes("adubo")) return el.q[28];
-      if (t.includes("lâmpada") || t.includes("ilumina") || t.includes("luz")) return el.q[29];
+    // Normalizador de texto para comparação sem acentos ou caracteres especiais
+    function normalizeText(str) {
+      if (!str) return "";
+      return str.toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // remove acentos
+        .replace(/[^a-z0-9\s]/g, " ")    // remove pontuação
+        .replace(/\s+/g, " ")
+        .trim();
+    }
 
-      // fallback: se o nome ou símbolo for citado diretamente
-      if (t.includes(el.name.toLowerCase()) || t.includes(el.sym.toLowerCase())) return true;
+    // Avaliador inteligente para perguntas personalizadas no modo contra o computador ou online
+    function evaluateCustomQuestionForElement(text, el) {
+      if (!el || !el.q) return false;
+      const t = normalizeText(text);
+
+      // 1. Número atômico / prótons / Z (Ex: "tem mais de 10 protons", "numero atomico maior que 20")
+      const numMatch = t.match(/(?:numero atomico|protons?|z)\s*(?:maior|mais|superior|acima)\s*(?:que|de|a)?\s*(\d+)/);
+      if (numMatch) {
+        const threshold = parseInt(numMatch[1], 10);
+        return el.num > threshold;
+      }
+      const numMatchLess = t.match(/(?:numero atomico|protons?|z)\s*(?:menor|menos|inferior|abaixo)\s*(?:que|de|a)?\s*(\d+)/);
+      if (numMatchLess) {
+        const threshold = parseInt(numMatchLess[1], 10);
+        return el.num < threshold;
+      }
+
+      // 2. Massa atômica (Ex: "massa maior que 50", "massa atomica menor que 30")
+      const massMatch = t.match(/(?:massa|peso)\s*(?:maior|mais|superior|acima)\s*(?:que|de|a)?\s*(\d+)/);
+      if (massMatch) {
+        const threshold = parseInt(massMatch[1], 10);
+        return el.mass > threshold;
+      }
+      const massMatchLess = t.match(/(?:massa|peso)\s*(?:menor|menos|inferior|abaixo)\s*(?:que|de|a)?\s*(\d+)/);
+      if (massMatchLess) {
+        const threshold = parseInt(massMatchLess[1], 10);
+        return el.mass < threshold;
+      }
+
+      // 3. Família / Grupo específico
+      if (t.includes("gas nobre") || t.includes("gases nobres")) return el.q[4];
+      if (t.includes("metal de transicao") || t.includes("metais de transicao")) return el.q[5];
+      if (t.includes("alcalino terroso") || t.includes("alcalinos terrosos")) return el.cat === "metal" && el.group === 2;
+      if (t.includes("alcalino") || t.includes("alcalinos")) return el.cat === "alkali";
+      if (t.includes("halogenio") || t.includes("halogenios")) return el.group === 17;
+      if (t.includes("semimetal") || t.includes("metaloide")) return el.q[3];
+      if (t.includes("nao metal") || t.includes("ametal") || t.includes("ametais")) return el.q[2];
+      if (t.includes("metal") || t.includes("metalico")) return el.q[1];
+
+      // 4. Período / Linha da tabela
+      if (t.includes("primeira linha") || t.includes("primeiro periodo") || t.includes("periodo 1")) return el.period === 1;
+      if (t.includes("segunda linha") || t.includes("segundo periodo") || t.includes("periodo 2")) return el.period === 2;
+      if (t.includes("terceira linha") || t.includes("terceiro periodo") || t.includes("periodo 3")) return el.period === 3;
+      if (t.includes("quarta linha") || t.includes("quarto periodo") || t.includes("periodo 4")) return el.period === 4;
+
+      // 5. Estado físico
+      if (t.includes("gas") || t.includes("gasoso") || t.includes("gasosa") || t.includes("vapor")) return el.q[12];
+      if (t.includes("liquido") || t.includes("fluido")) return el.q[11];
+      if (t.includes("solido") || t.includes("duro") || t.includes("rigido")) return el.q[10];
+
+      // 6. Ocorrência natural e localização
+      if (t.includes("natural") || t.includes("natureza") || t.includes("terra")) return el.q[0];
+      if (t.includes("ar") || t.includes("atmosfera") || t.includes("respiramos")) return el.q[13];
+      if (t.includes("mar") || t.includes("oceano") || t.includes("salmoura")) return el.q[14];
+      if (t.includes("corpo humano") || t.includes("organismo") || t.includes("celula") || t.includes("sangue") || t.includes("osso")) return el.q[15];
+      if (t.includes("crosta") || t.includes("abundante") || t.includes("solo") || t.includes("rocha")) return el.q[20];
+      if (t.includes("radioativ") || t.includes("radiacao") || t.includes("nuclear")) return el.q[16];
+      if (t.includes("reage com agua") || t.includes("agua")) return el.q[17];
+      if (t.includes("ima") || t.includes("magnet") || t.includes("atrai")) return el.q[18];
+      if (t.includes("minerio") || t.includes("mina") || t.includes("jazida")) return el.q[19];
+
+      // 7. Usos e Aplicações
+      if (t.includes("construcao") || t.includes("predio") || t.includes("ponte") || t.includes("estrutura") || t.includes("viga")) return el.q[21];
+      if (t.includes("eletron") || t.includes("computador") || t.includes("chip") || t.includes("celular") || t.includes("tecnologia") || t.includes("circuito")) return el.q[22];
+      if (t.includes("embalagem") || t.includes("panela") || t.includes("lata") || t.includes("utensilio") || t.includes("cozinha")) return el.q[23];
+      if (t.includes("combustivel") || t.includes("foguete") || t.includes("energia") || t.includes("queima") || t.includes("inflamavel")) return el.q[24];
+      if (t.includes("bateria") || t.includes("pilha") || t.includes("acumulador")) return el.q[25];
+      if (t.includes("medic") || t.includes("remedio") || t.includes("hospital") || t.includes("farmacia") || t.includes("saude")) return el.q[26];
+      if (t.includes("comida") || t.includes("alimento") || t.includes("alimentici") || t.includes("comer") || t.includes("bebida")) return el.q[27];
+      if (t.includes("sal de cozinha") || t.includes("fertilizante") || t.includes("adubo") || t.includes("planta") || t.includes("lavoura")) return el.q[28];
+      if (t.includes("lampada") || t.includes("ilumin") || t.includes("luz") || t.includes("neon") || t.includes("brilho")) return el.q[29];
+
+      // 8. Menção direta ao nome ou símbolo
+      const normName = normalizeText(el.name);
+      const normSym = normalizeText(el.sym);
+      if (t.includes(normName) || t.split(" ").includes(normSym)) return true;
+
       return false;
     }
 
@@ -4636,27 +4703,52 @@ function getScientificExplanation(el, qIdx, realBool) {
         return;
       }
 
-      // 2. Busca binária entre as perguntas ainda NÃO usadas (dentre as 30)
+      // 2. Busca de perguntas com dificuldade progressiva baseada no progresso (desbloqueios)
+      // Hidrogênio apenas (1 elemento) -> IA mais fácil (perguntas aleatórias)
+      // Mais elementos desbloqueados -> IA mais inteligente (busca binária perfeita)
+      const unlockedCount = getSeenElementsSet().size;
+      // Chance de usar dedução ótima (de 30% com 1 elemento até 100% com 15+ elementos)
+      const optimalChance = Math.min(1.0, 0.30 + (unlockedCount - 1) * 0.05);
+      const useOptimal = Math.random() < optimalChance;
+
       let bestQ = -1;
-      let minDiff = 999;
-      const half = cpuCandidates.length / 2;
 
-      for (let i = 0; i < QUESTIONS.length; i++) {
-        // PULA PERGUNTAS JÁ USADAS!
-        if (usedQuestionsSet.has(i)) continue;
+      if (useOptimal) {
+        // Modo inteligente: busca binária que divide os candidatos ao meio
+        let minDiff = 999;
+        const half = cpuCandidates.length / 2;
 
-        let trueCount = 0;
-        cpuCandidates.forEach(c => {
-          if (c.q[i]) trueCount++;
-        });
+        for (let i = 0; i < QUESTIONS.length; i++) {
+          if (usedQuestionsSet.has(i)) continue;
 
-        if (trueCount === 0 || trueCount === cpuCandidates.length) continue;
+          let trueCount = 0;
+          cpuCandidates.forEach(c => {
+            if (c.q[i]) trueCount++;
+          });
 
-        let diff = Math.abs(trueCount - half);
+          if (trueCount === 0 || trueCount === cpuCandidates.length) continue;
 
-        if (diff < minDiff) {
-          minDiff = diff;
-          bestQ = i;
+          let diff = Math.abs(trueCount - half);
+          if (diff < minDiff) {
+            minDiff = diff;
+            bestQ = i;
+          }
+        }
+      } else {
+        // Modo fácil: escolhe aleatoriamente entre as perguntas não usadas que ainda dividem o conjunto
+        const validQuestions = [];
+        for (let i = 0; i < QUESTIONS.length; i++) {
+          if (usedQuestionsSet.has(i)) continue;
+          let trueCount = 0;
+          cpuCandidates.forEach(c => {
+            if (c.q[i]) trueCount++;
+          });
+          if (trueCount > 0 && trueCount < cpuCandidates.length) {
+            validQuestions.push(i);
+          }
+        }
+        if (validQuestions.length > 0) {
+          bestQ = validQuestions[Math.floor(Math.random() * validQuestions.length)];
         }
       }
 
@@ -4875,7 +4967,32 @@ function getScientificExplanation(el, qIdx, realBool) {
     /* ==========================================================================
        TELA DE VITÓRIA / REVELAÇÃO
        ========================================================================= */
-    function showVictoryScreen(isWinner, p1El, p2El, winningElement, winnerName) {
+    function handleRematch() {
+      document.getElementById("victoryModal").classList.add("hidden");
+      if (gameMode === "local") {
+        preparePickingScreen("Escolha seu Elemento Secreto", false, "");
+        showScreen("screenPicking");
+      } else {
+        if (!roomRef) return;
+        // Reinicia a rodada na mesma sala
+        const updates = {
+          status: "picking",
+          "player1/ready": false,
+          "player1/element": null,
+          "player2/ready": false,
+          "player2/element": null,
+          turn: "player1",
+          log: [],
+          usedQuestions: [],
+          guess: null,
+          pendingQuestion: null
+        };
+        roomRef.update(updates).then(() => {
+          preparePickingScreen(`Sala: ${roomCode}`, true, "Nova partida! Escolha seu elemento secreto.");
+          showScreen("screenPicking");
+        });
+      }
+    }
       gameOver = true;
       hideBlockOverlay();
       hideBanner();
