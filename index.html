@@ -2300,7 +2300,7 @@
       <p>Conecte-se com um amigo criando uma nova sala ou informando o código da partida.</p>
 
       <div class="lobby-section">
-        <div class="lobby-section-title">Opção A: Criar Nova Partida</div>
+        <div class="lobby-section-title">Criar Nova Partida</div>
         <p style="text-align: left; margin-bottom: 12px;">Gere um código exclusivo e envie o link para o segundo jogador.</p>
         <button class="btn-action btn-primary" style="width: 100%; padding: 12px;" onclick="createOnlineRoom()">
           <span>➕</span> Criar Sala Privada
@@ -2308,7 +2308,7 @@
       </div>
 
       <div class="lobby-section">
-        <div class="lobby-section-title">Opção B: Entrar em Sala Existente</div>
+        <div class="lobby-section-title">Entrar em Sala Existente</div>
         <div class="lobby-input-row">
           <input type="text" id="inputRoomCode" class="lobby-input" placeholder="CÓDIGO (6 DÍGITOS)" maxlength="6">
           <button class="btn-action" style="padding: 10px 18px;" onclick="joinOnlineRoomFromInput()">
@@ -2318,7 +2318,7 @@
       </div>
 
       <div class="lobby-section">
-        <div class="lobby-section-title">Opção C: Procurar Partida Aberta 🔍</div>
+        <div class="lobby-section-title">Procurar Partida Aberta 🔍</div>
         <p style="text-align: left; margin-bottom: 12px;">Encontre automaticamente outro jogador esperando uma partida — sem precisar de código.</p>
         <button class="btn-action" style="width: 100%; padding: 12px;" id="btnFindMatch" onclick="findOpenMatch()">
           <span>🔍</span> Procurar Partida
@@ -3291,10 +3291,17 @@
     function goToStartScreen() {
       cancelFindMatch();
       if (roomRef) {
+        if (myRole === "player2") {
+          roomRef.child("player2").remove();
+          roomRef.child("status").set("waiting");
+        } else if (myRole === "player1") {
+          roomRef.child("status").set("finished");
+        }
         roomRef.off();
         roomRef = null;
       }
       roomCode = null;
+      myRole = null;
       gameOver = false;
       hideBlockOverlay();
       hideBanner();
@@ -3638,15 +3645,43 @@
     function setupOnlineRoomListener() {
       if (!roomRef) return;
 
+      // Configura desconexão automática do Firebase caso a aba seja fechada
+      try {
+        if (myRole === "player2") {
+          roomRef.child("player2").onDisconnect().remove();
+          roomRef.child("status").onDisconnect().set("waiting");
+        } else if (myRole === "player1") {
+          roomRef.child("status").onDisconnect().set("finished");
+        }
+      } catch (e) {
+        console.warn("Erro ao configurar onDisconnect:", e);
+      }
+
       roomRef.on("value", snapshot => {
         const data = snapshot.val();
         if (!data) return;
+
+        // Se o outro jogador saiu durante a partida em andamento
+        if (data.status === "finished" && !gameOver && document.getElementById("screenGame").classList.contains("active")) {
+          alert("O outro jogador saiu da sala. A partida foi finalizada.");
+          goToStartScreen();
+          return;
+        }
 
         if (data.status === "waiting") {
           const statusBox = document.getElementById("pickStatusMsg");
           const statusText = document.getElementById("pickStatusText");
           statusBox.style.display = "flex";
           statusText.textContent = "Aguardando jogador 2 entrar na sala...";
+
+          // Se o Jogador 1 já estava na tela de escolha ou aguardando e o Jogador 2 saiu
+          if (myRole === "player1") {
+            const btnPick = document.getElementById("btnConfirmPick");
+            if (btnPick && !mySecret) {
+              btnPick.textContent = "Confirmar Elemento";
+              btnPick.disabled = !tempSelectedElement;
+            }
+          }
         } else if (data.status === "picking") {
           const statusBox = document.getElementById("pickStatusMsg");
           const statusText = document.getElementById("pickStatusText");
@@ -3655,9 +3690,16 @@
           const p1Ready = data.player1 && data.player1.ready;
           const p2Ready = data.player2 && data.player2.ready;
 
-          if (myRole === "player1" && !p2Ready) {
-            statusText.textContent = p1Ready ? "Jogador 2 conectado! Aguardando a escolha dele..." : "Jogador 2 conectado! Escolha seu elemento.";
-          } else if (myRole === "player2" && !p1Ready) {
+          if (myRole === "player1") {
+            if (!data.player2) {
+              // Jogador 2 saiu antes de confirmar
+              statusText.textContent = "Jogador 2 se desconectou. Aguardando novo jogador entrar...";
+            } else if (!p2Ready) {
+              statusText.textContent = p1Ready ? "Jogador 2 conectado! Aguardando a escolha dele..." : "Jogador 2 conectado! Escolha seu elemento.";
+            } else {
+              statusText.textContent = p1Ready ? "Ambos prontos! Iniciando..." : "Jogador 2 já escolheu! Escolha seu elemento.";
+            }
+          } else if (myRole === "player2") {
             statusText.textContent = p2Ready ? "Aguardando Jogador 1 confirmar o elemento..." : "Ambos conectados! Escolha seu elemento.";
           }
 
