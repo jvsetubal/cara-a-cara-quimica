@@ -1904,12 +1904,12 @@
        TUTORIAL EM ETAPAS (PASSOS CLARAMENTE SEPARADOS)
        ========================================================================= */
     .tutorial-modal-card {
-      background: linear-gradient(145deg, #0f172a 0%, #090d16 100%);
+      background: linear-gradient(145deg, #0e1726 0%, #080c14 100%);
       border: 1px solid rgba(56, 189, 248, 0.4);
-      box-shadow: 0 0 50px rgba(56, 189, 248, 0.25), 0 20px 40px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0 50px rgba(56, 189, 248, 0.25), 0 20px 45px rgba(0, 0, 0, 0.7);
       border-radius: 20px;
       padding: 24px;
-      max-width: 620px;
+      max-width: 680px;
       width: 94%;
       display: flex;
       flex-direction: column;
@@ -1921,91 +1921,107 @@
     .tutorial-professor-layout {
       display: flex;
       align-items: center;
-      gap: 18px;
+      gap: 20px;
     }
 
     .tutorial-professor-avatar-wrap {
-      flex-shrink: 0;
-      position: relative;
+      flex: 0 0 170px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative;
+    }
+
+    .tutorial-professor-frame {
+      width: 170px;
+      height: 210px;
+      border-radius: 16px;
+      border: 2px solid rgba(56, 189, 248, 0.4);
+      background: radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.15) 0%, rgba(15, 23, 42, 0.8) 100%);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 189, 248, 0.2);
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
     }
 
     .tutorial-professor-img {
-      width: 140px;
-      height: 140px;
-      object-fit: cover;
-      object-position: top center;
-      border-radius: 50%;
-      border: 3px solid var(--accent-cyan);
-      box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
-      background: #1e293b;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: bottom center;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+      transition: transform 0.3s ease;
     }
 
     .tutorial-professor-badge {
       margin-top: -12px;
-      background: linear-gradient(135deg, var(--accent-cyan), #3b82f6);
-      color: #0f172a;
-      font-size: 10.5px;
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      color: #041226;
+      font-size: 11px;
       font-weight: 800;
-      padding: 2px 10px;
+      padding: 3px 12px;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       white-space: nowrap;
       z-index: 2;
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     .tutorial-speech-bubble {
       flex: 1;
-      background: rgba(30, 41, 59, 0.8);
-      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.35);
       border-radius: 16px;
-      padding: 16px 18px;
+      padding: 18px 20px;
       position: relative;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+      box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.35);
     }
 
-    /* Triângulo do balão apontando para o professor */
+    /* Triângulo do balão de fala apontando para o professor */
     .tutorial-speech-bubble::before {
       content: "";
       position: absolute;
-      left: -10px;
-      top: 50px;
+      left: -11px;
+      top: 50%;
+      transform: translateY(-50%);
       width: 0;
       height: 0;
       border-top: 10px solid transparent;
       border-bottom: 10px solid transparent;
-      border-right: 10px solid rgba(56, 189, 248, 0.3);
+      border-right: 11px solid rgba(56, 189, 248, 0.4);
     }
     .tutorial-speech-bubble::after {
       content: "";
       position: absolute;
-      left: -8px;
-      top: 51px;
+      left: -9px;
+      top: 50%;
+      transform: translateY(-50%);
       width: 0;
       height: 0;
       border-top: 9px solid transparent;
       border-bottom: 9px solid transparent;
-      border-right: 9px solid rgba(30, 41, 59, 0.95);
+      border-right: 10px solid rgba(30, 41, 59, 0.95);
     }
 
     @media (max-width: 640px) {
       .tutorial-professor-layout {
         flex-direction: column;
         text-align: center;
-        gap: 12px;
+        gap: 14px;
       }
-      .tutorial-professor-img {
-        width: 100px;
-        height: 100px;
+      .tutorial-professor-avatar-wrap {
+        flex: 0 0 auto;
+      }
+      .tutorial-professor-frame {
+        width: 130px;
+        height: 160px;
       }
       .tutorial-speech-bubble::before,
       .tutorial-speech-bubble::after {
         display: none;
       }
     }
-
     .tutorial-step-dots {
       display: flex;
       justify-content: center;
@@ -3083,8 +3099,10 @@
       <!-- Estrutura com o Professor Marista Explicando o Jogo -->
       <div class="tutorial-professor-layout">
         <div class="tutorial-professor-avatar-wrap">
-          <img src="Professor Marista Gesticulando em Destaque.png" alt="Professor de Química" class="tutorial-professor-img" />
-          <div class="tutorial-professor-badge">👨‍🏫 Professor</div>
+          <div class="tutorial-professor-frame">
+            <img src="professor-marista.png" alt="Professor Marista Explicando" class="tutorial-professor-img" />
+          </div>
+          <div class="tutorial-professor-badge">👨‍🏫 Professor Marista</div>
         </div>
 
         <div class="tutorial-speech-bubble">
