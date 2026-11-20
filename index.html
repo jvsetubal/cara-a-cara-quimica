@@ -1904,30 +1904,117 @@
        TUTORIAL EM ETAPAS (PASSOS CLARAMENTE SEPARADOS)
        ========================================================================= */
     .tutorial-modal-card {
-      background: linear-gradient(145deg, #0e1522 0%, #090d16 100%);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      box-shadow: 0 0 45px rgba(56, 189, 248, 0.2);
-      border-radius: 18px;
-      padding: 28px;
-      max-width: 540px;
-      width: 92%;
+      background: linear-gradient(145deg, #0f172a 0%, #090d16 100%);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 0 50px rgba(56, 189, 248, 0.25), 0 20px 40px rgba(0, 0, 0, 0.6);
+      border-radius: 20px;
+      padding: 24px;
+      max-width: 620px;
+      width: 94%;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
       position: relative;
       animation: popIn 0.25s ease-out;
+    }
+
+    .tutorial-professor-layout {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .tutorial-professor-avatar-wrap {
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .tutorial-professor-img {
+      width: 140px;
+      height: 140px;
+      object-fit: cover;
+      object-position: top center;
+      border-radius: 50%;
+      border: 3px solid var(--accent-cyan);
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+      background: #1e293b;
+    }
+
+    .tutorial-professor-badge {
+      margin-top: -12px;
+      background: linear-gradient(135deg, var(--accent-cyan), #3b82f6);
+      color: #0f172a;
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 2px 10px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      white-space: nowrap;
+      z-index: 2;
+    }
+
+    .tutorial-speech-bubble {
+      flex: 1;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 16px;
+      padding: 16px 18px;
+      position: relative;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    /* Triângulo do balão apontando para o professor */
+    .tutorial-speech-bubble::before {
+      content: "";
+      position: absolute;
+      left: -10px;
+      top: 50px;
+      width: 0;
+      height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-right: 10px solid rgba(56, 189, 248, 0.3);
+    }
+    .tutorial-speech-bubble::after {
+      content: "";
+      position: absolute;
+      left: -8px;
+      top: 51px;
+      width: 0;
+      height: 0;
+      border-top: 9px solid transparent;
+      border-bottom: 9px solid transparent;
+      border-right: 9px solid rgba(30, 41, 59, 0.95);
+    }
+
+    @media (max-width: 640px) {
+      .tutorial-professor-layout {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+      }
+      .tutorial-professor-img {
+        width: 100px;
+        height: 100px;
+      }
+      .tutorial-speech-bubble::before,
+      .tutorial-speech-bubble::after {
+        display: none;
+      }
     }
 
     .tutorial-step-dots {
       display: flex;
       justify-content: center;
-      gap: 12px;
-      margin-bottom: 6px;
+      gap: 10px;
     }
 
     .step-dot {
-      width: 32px;
-      height: 6px;
+      width: 28px;
+      height: 5px;
       border-radius: 4px;
       background: rgba(255, 255, 255, 0.12);
       transition: all 0.3s ease;
@@ -1935,17 +2022,15 @@
 
     .step-dot.active {
       background: var(--accent-cyan);
-      width: 52px;
+      width: 48px;
       box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
     }
 
     .tutorial-step-pane {
       display: none !important;
       flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 14px;
-      min-height: 250px;
+      gap: 10px;
+      min-height: 170px;
       justify-content: center;
     }
 
@@ -1954,42 +2039,29 @@
       animation: fadeIn 0.3s ease-out;
     }
 
-    .tutorial-step-icon {
-      font-size: 44px;
-      width: 84px;
-      height: 84px;
-      border-radius: 50%;
-      background: rgba(56, 189, 248, 0.08);
-      border: 2px solid rgba(56, 189, 248, 0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 2px;
-      box-shadow: 0 0 25px rgba(56, 189, 248, 0.15);
-    }
-
     .tutorial-step-title {
-      font-size: 20px;
+      font-size: 17px;
       font-weight: 800;
       color: #f1f5f9;
       letter-spacing: -0.3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .tutorial-step-desc {
-      font-size: 14px;
-      color: #94a3b8;
-      line-height: 1.6;
-      max-width: 440px;
+      font-size: 13.5px;
+      color: #cbd5e1;
+      line-height: 1.55;
     }
 
     .tutorial-step-highlight {
-      background: rgba(56, 189, 248, 0.08);
+      background: rgba(56, 189, 248, 0.1);
       border: 1px dashed rgba(56, 189, 248, 0.4);
-      border-radius: 10px;
-      padding: 10px 16px;
-      font-size: 12.5px;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
       color: #bae6fd;
-      max-width: 440px;
     }
 
     .tutorial-nav-buttons {
@@ -2840,7 +2912,7 @@
         🎯 MODO PALPITE ATIVO: Clique na carta do elemento que você acredita ser do adversário!
       </div>
 
-      <!-- Grade dos 30 Elementos -->
+      <!-- Grade dos 40 Elementos -->
       <div class="board-grid" id="boardGrid">
         <!-- Gerado via JS -->
       </div>
@@ -2998,49 +3070,56 @@
        ========================================================================= -->
   <div id="tutorialModal" class="modal-overlay hidden" onclick="handleTutorialOverlayClick(event)">
     <div class="tutorial-modal-card">
-      <div style="position: absolute; top: 16px; right: 16px;">
+      <div style="position: absolute; top: 16px; right: 16px; z-index: 10;">
         <button class="btn-close-circle" onclick="closeTutorial()" title="Pular Tutorial">✕</button>
       </div>
+
       <div class="tutorial-step-dots">
         <div class="step-dot active" id="dotStep1"></div>
         <div class="step-dot" id="dotStep2"></div>
         <div class="step-dot" id="dotStep3"></div>
       </div>
 
-      <!-- Passo 1 -->
-      <div class="tutorial-step-pane active" id="paneStep1">
-        <div class="tutorial-step-icon">🔬</div>
-        <div class="tutorial-step-title">Passo 1: Seu Elemento Secreto</div>
-        <div class="tutorial-step-desc">
-          No começo do jogo, você e seu adversário escolhem em segredo um dos <strong>30 elementos da Tabela Periódica</strong>. O objetivo é descobrir o elemento do outro antes que ele descubra o seu!
+      <!-- Estrutura com o Professor Marista Explicando o Jogo -->
+      <div class="tutorial-professor-layout">
+        <div class="tutorial-professor-avatar-wrap">
+          <img src="Professor Marista Gesticulando em Destaque.png" alt="Professor de Química" class="tutorial-professor-img" />
+          <div class="tutorial-professor-badge">👨‍🏫 Professor</div>
         </div>
-        <div class="tutorial-step-highlight">
-          💡 <em>Dica:</em> Preste atenção no número atômico, estado físico e onde ele é usado no cotidiano.
-        </div>
-      </div>
 
-      <!-- Passo 2 -->
-      <div class="tutorial-step-pane" id="paneStep2">
-        <div class="tutorial-step-icon">❓</div>
-        <div class="tutorial-step-title">Passo 2: Pergunte e Responda</div>
-        <div class="tutorial-step-desc">
-          Na sua vez, faça uma pergunta de <strong>Sim ou Não</strong> usando as opções da lista ou <strong>escrevendo sua própria pergunta</strong>!
-          Quando o adversário perguntar algo sobre o seu elemento, responda com sinceridade.
-        </div>
-        <div class="tutorial-step-highlight">
-          ✨ <em>Curiosidade Científica:</em> Se você tiver dúvida em uma resposta, o jogo traz curiosidades e dicas químicas para te ajudar a aprender!
-        </div>
-      </div>
+        <div class="tutorial-speech-bubble">
+          <!-- Passo 1 -->
+          <div class="tutorial-step-pane active" id="paneStep1">
+            <div class="tutorial-step-title"><span>🔬</span> Passo 1: Seu Elemento Secreto</div>
+            <div class="tutorial-step-desc">
+              "Bem-vindo ao laboratório! No início do jogo, você e seu oponente escolhem em segredo um dos <strong>40 elementos da Tabela Periódica</strong>. O objetivo é deduzir o elemento secreto do adversário antes que ele adivinhe o seu!"
+            </div>
+            <div class="tutorial-step-highlight">
+              💡 <em>Dica do Professor:</em> Fique de olho no número atômico, estado físico e nas aplicações do cotidiano!
+            </div>
+          </div>
 
-      <!-- Passo 3 -->
-      <div class="tutorial-step-pane" id="paneStep3">
-        <div class="tutorial-step-icon">✂️</div>
-        <div class="tutorial-step-title">Passo 3: Risque e Dê o Palpite!</div>
-        <div class="tutorial-step-desc">
-          A cada resposta recebida, clique nos elementos que não combinam para <strong>riscá-los do tabuleiro</strong>. Quando sobrar apenas um candidato certo, clique em <strong>Fazer Palpite</strong> para vencer a partida!
-        </div>
-        <div class="tutorial-step-highlight">
-          🎯 <em>Atenção:</em> Um palpite consome sua rodada, então tenha certeza da sua dedução antes de arriscar!
+          <!-- Passo 2 -->
+          <div class="tutorial-step-pane" id="paneStep2">
+            <div class="tutorial-step-title"><span>❓</span> Passo 2: Pergunte e Responda</div>
+            <div class="tutorial-step-desc">
+              "Na sua vez, formule uma pergunta de <strong>Sim ou Não</strong> escolhendo entre as opções científicas ou <strong>digitando sua própria pergunta</strong>! Quando o adversário perguntar algo sobre o seu elemento, responda com sinceridade científica."
+            </div>
+            <div class="tutorial-step-highlight">
+              ✨ <em>Curiosidade Científica:</em> Se tiver qualquer dúvida, clique no botão <strong>📋 Dados</strong> para ver a ficha completa do elemento!
+            </div>
+          </div>
+
+          <!-- Passo 3 -->
+          <div class="tutorial-step-pane" id="paneStep3">
+            <div class="tutorial-step-title"><span>🎯</span> Passo 3: Risque e Dê o Palpite!</div>
+            <div class="tutorial-step-desc">
+              "A cada resposta, elimine os elementos que não combinam <strong>riscando-os do tabuleiro</strong>. Quando tiver certeza de qual é o elemento secreto rival, clique em <strong>Fazer Palpite</strong> para conquistar a vitória!"
+            </div>
+            <div class="tutorial-step-highlight">
+              ⚠️ <em>Atenção:</em> Um palpite consome sua rodada. Confirme sua dedução antes de arriscar!
+            </div>
+          </div>
         </div>
       </div>
 
@@ -3085,7 +3164,7 @@
           <div class="stat-card-label">Aproveitamento</div>
         </div>
         <div class="stat-card-box">
-          <div class="stat-card-number" id="statElementsSeen" style="color: var(--accent-cyan);">0/30</div>
+          <div class="stat-card-number" id="statElementsSeen" style="color: var(--accent-cyan);">0/40</div>
           <div class="stat-card-label">Colecionados</div>
         </div>
       </div>
@@ -3306,7 +3385,7 @@
     };
 
     /* ==========================================================================
-       LISTA DOS 30 ELEMENTOS COM DADOS BOOLEANOS COMPLETOS PARA AS 30 PERGUNTAS
+       LISTA DOS 40 ELEMENTOS COM DADOS BOOLEANOS COMPLETOS PARA AS 30 PERGUNTAS
        ========================================================================== */
     const ELEMENTS = [
       {
@@ -4287,7 +4366,7 @@
       document.getElementById("statWinRate").textContent = `${rate}%`;
       document.getElementById("statElementsSeen").textContent = `${seen.size}/40`;
 
-      // Renderiza grade artística dos 30 elementos
+      // Renderiza grade artística dos 40 elementos
       const grid = document.getElementById("discoveredElementsGrid");
       grid.innerHTML = "";
       ELEMENTS.forEach(el => {
