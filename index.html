@@ -2726,7 +2726,7 @@
       <div class="brand-icon">⚛</div>
       <div>
         <h1>Cara a Cara Químico</h1>
-        <div style="font-size: 11px; color: var(--text-muted);" id="headerModeSubtitle">Modo Local vs Computador</div>
+        <div style="font-size: 11px; color: var(--text-muted);" id="headerModeSubtitle">Duelo contra o Professor</div>
       </div>
     </div>
 
@@ -2799,8 +2799,8 @@
             <img src="professor-derrota.png" alt="Professor Mauro" style="width: 100%; height: 100%; object-fit: cover; object-position: top center;" />
           </div>
           <div>
-            <div class="mode-title">Duelo contra o Professor (IA)</div>
-            <div class="mode-desc">Enfrente a IA do Professor em um duelo científico desafiador e teste sua dedução química!</div>
+            <div class="mode-title">Duelo contra o Professor</div>
+            <div class="mode-desc">Enfrente o Professor em um duelo científico desafiador e teste sua dedução química!</div>
           </div>
         </div>
 
@@ -2901,7 +2901,7 @@
         <div>
           <div class="block-title" id="blockTitle">Vez da Inteligência Artificial</div>
           <div class="block-subtitle" id="blockSubtitle">
-            O computador está pensando na melhor pergunta para desvendar seu elemento...
+            O Professor está formulando a próxima pergunta sobre o seu elemento...
           </div>
         </div>
         <div class="block-progress-bar">
@@ -3060,7 +3060,7 @@
   <div id="answerModal" class="modal-overlay hidden">
     <div class="answer-modal-card">
       <div class="answer-modal-header">
-        <span class="answer-modal-badge" id="modalAuthorBadge">IA PERGUNTOU</span>
+        <span class="answer-modal-badge" id="modalAuthorBadge">PROFESSOR PERGUNTOU</span>
         <span style="font-size: 12px; color: var(--text-muted);">Responda com base no seu elemento</span>
       </div>
 
@@ -4110,8 +4110,8 @@
     const ACHIEVEMENTS_LIST = [
       {
         id: "first_win_ai",
-        title: "Mestre dos Algoritmos",
-        desc: "Vença uma partida contra o Computador (IA)",
+        title: "Superando o Mestre",
+        desc: "Vença uma partida em duelo contra o Professor",
         icon: "🤖"
       },
       {
@@ -4276,7 +4276,7 @@
           won: !!isWinner,
           myElement: myElementSym,
           oppElement: oppElementSym,
-          opponent: opponentName || (gameMode === "online" ? "Adversário Online" : "Computador")
+          opponent: opponentName || (gameMode === "online" ? "Adversário Online" : "Professor")
         };
 
         // Verificação de conquistas por vitórias e histórico
@@ -4590,7 +4590,7 @@
         hideAnswerModal();
       } else if (screenId === "screenPicking") {
         turnBadge.style.display = "none";
-        subTitle.textContent = gameMode === "online" ? `Partida Online (${roomCode})` : "Modo Local vs Computador";
+        subTitle.textContent = gameMode === "online" ? `Partida Online (${roomCode})` : "Duelo contra o Professor";
         if (gameMode === "online") roomBadge.style.display = "flex";
         hideBlockOverlay();
         hideBanner();
@@ -5005,7 +5005,7 @@
     function proceedStartLocalFlow() {
       gameMode = "local";
       myRole = "player1";
-      document.getElementById("headerModeSubtitle").textContent = "Modo Local vs Computador";
+      document.getElementById("headerModeSubtitle").textContent = "Duelo contra o Professor";
       preparePickingScreen("Escolha seu Elemento Secreto", false, "");
     }
 
@@ -5367,7 +5367,7 @@
           type: "system",
           author: "SISTEMA",
           title: "Partida Iniciada",
-          content: `Seu elemento secreto é <strong>${mySecret ? mySecret.name : ''} (${mySecret ? mySecret.sym : ''})</strong>. O computador já definiu o dele.`
+          content: `Seu elemento secreto é <strong>${mySecret ? mySecret.name : ''} (${mySecret ? mySecret.sym : ''})</strong>. O Professor já escolheu o dele.`
         });
 
         showScreen("screenGame");
@@ -5722,7 +5722,7 @@
 
       let correctedNotice = "";
       if (wasCorrected) {
-        correctedNotice = ` <span style="font-size: 10px; background: rgba(245, 158, 11, 0.2); border: 1px solid var(--accent-amber); color: #fbbf24; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px;">🤖 Corrigido pela IA</span>`;
+        correctedNotice = ` <span style="font-size: 10px; background: rgba(245, 158, 11, 0.2); border: 1px solid var(--accent-amber); color: #fbbf24; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px;">👨‍🏫 Revisão do Professor</span>`;
       }
 
       if (isGuess) {
@@ -5803,7 +5803,7 @@
         currentPendingQuestion._correctionExplanation = explanation;
 
         explanationEl.innerHTML = `
-          Você marcou <strong>${chosenStr}</strong>, mas a IA do laboratório corrigiu automaticamente para <strong style="color: ${realBool ? '#38bdf8' : '#f472b6'};">${realStr}</strong> com base nas propriedades reais do <strong>${mySecret.name} (${mySecret.sym})</strong>.<br><br>
+          Você marcou <strong>${chosenStr}</strong>, mas o Professor corrigiu para <strong style="color: ${realBool ? '#38bdf8' : '#f472b6'};">${realStr}</strong> com base nas propriedades reais do <strong>${mySecret.name} (${mySecret.sym})</strong>.<br><br>
           ${explanation}
         `;
 
@@ -6282,7 +6282,7 @@
       const notice = document.getElementById("passTurnNotice");
       if (notice) {
         if (gameMode === "local") {
-          notice.textContent = "A IA só fará a pergunta dela após você passar!";
+          notice.textContent = "O Professor só fará a pergunta dele após você passar a vez!";
         } else {
           notice.textContent = "O adversário só fará a pergunta dele após você passar!";
         }
@@ -6331,7 +6331,7 @@
 
       showBlockOverlay(
         "Vez da Inteligência Artificial",
-        "O computador está pensando na melhor pergunta para desvendar seu elemento...",
+        "O Professor está formulando a próxima pergunta sobre o seu elemento...",
         "🤖"
       );
 
@@ -6353,7 +6353,7 @@
 
         pushHistoryCard({
           type: "opp",
-          author: "COMPUTADOR",
+          author: "PROFESSOR",
           isGuess: true,
           guessElement: `${candidate.name} (${candidate.sym})`,
           answer: isCorrect ? "CORRETO!" : "INCORRETO"
@@ -6362,7 +6362,7 @@
         hideBlockOverlay();
 
         if (isCorrect) {
-          showVictoryScreen(false, mySecret, opponentSecret, mySecret, "Computador");
+          showVictoryScreen(false, mySecret, opponentSecret, mySecret, "Professor");
         } else {
           cpuCandidates = [];
           endCpuTurn();
@@ -6437,7 +6437,7 @@
 
         pushHistoryCard({
           type: "opp",
-          author: "COMPUTADOR",
+          author: "PROFESSOR",
           isGuess: true,
           guessElement: `${guess.name} (${guess.sym})`,
           answer: isCorrect ? "CORRETO!" : "INCORRETO"
@@ -6446,7 +6446,7 @@
         hideBlockOverlay();
 
         if (isCorrect) {
-          showVictoryScreen(false, mySecret, opponentSecret, mySecret, "Computador");
+          showVictoryScreen(false, mySecret, opponentSecret, mySecret, "Professor");
         } else {
           cpuCandidates = cpuCandidates.filter(e => e.sym !== guess.sym);
           endCpuTurn();
@@ -6460,14 +6460,14 @@
 
       hideBlockOverlay();
 
-      openAnswerModal(bestQ, "Computador", QUESTIONS[bestQ], (validatedAnswerStr) => {
+      openAnswerModal(bestQ, "Professor", QUESTIONS[bestQ], (validatedAnswerStr) => {
         const validatedBool = (validatedAnswerStr === "SIM");
 
         cpuCandidates = cpuCandidates.filter(c => c.q[bestQ] === validatedBool);
 
         pushHistoryCard({
           type: "opp",
-          author: "COMPUTADOR",
+          author: "PROFESSOR",
           question: QUESTIONS[bestQ],
           answer: validatedAnswerStr
         });
@@ -6615,7 +6615,7 @@
         hideBlockOverlay();
       } else {
         badge.className = "turn-badge opp-turn";
-        text.textContent = (gameMode === "local" ? "Computador Pensando..." : "Vez do Adversário");
+        text.textContent = (gameMode === "local" ? "Professor Pensando..." : "Vez do Adversário");
         roleTag.textContent = "Aguardando Jogador";
         btnAsk.disabled = true;
         btnGuess.disabled = true;
@@ -6700,14 +6700,14 @@
       document.getElementById("revealP1Name").textContent = `${p1El.name} (Z=${p1El.num})`;
       document.getElementById("revealP1Details").textContent = `Grupo ${p1El.group} • Período ${p1El.period}`;
 
-      document.getElementById("revealP2Label").textContent = (gameMode === "local" ? "Computador" : "Jogador 2");
+      document.getElementById("revealP2Label").textContent = (gameMode === "local" ? "Professor" : "Jogador 2");
       document.getElementById("revealP2Sym").textContent = p2El.sym;
       document.getElementById("revealP2Name").textContent = `${p2El.name} (Z=${p2El.num})`;
       document.getElementById("revealP2Details").textContent = `Grupo ${p2El.group} • Período ${p2El.period}`;
 
       document.getElementById("revealFact").textContent = winningElement.fact || "Elemento fascinante da tabela periódica!";
 
-      const actualOpponent = (gameMode === "online" ? (opponentNickName || "Adversário Online") : "Computador");
+      const actualOpponent = (gameMode === "online" ? (opponentNickName || "Adversário Online") : "Professor");
       registerMatchFinished(isWinner, mySecret ? mySecret.sym : null, opponentSecret ? opponentSecret.sym : (p2El ? p2El.sym : null), actualOpponent);
       modal.classList.remove("hidden");
     }
