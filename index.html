@@ -721,7 +721,7 @@
       padding: 0;
       position: relative;
       cursor: pointer;
-      min-height: 126px;
+      min-height: 142px;
       perspective: 800px;
       user-select: none;
     }
@@ -730,7 +730,7 @@
       position: relative;
       width: 100%;
       height: 100%;
-      min-height: 126px;
+      min-height: 142px;
       text-align: left;
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       transform-style: preserve-3d;
@@ -916,42 +916,45 @@
     }
 
     .card-symbol {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 800;
-      line-height: 1.1;
+      line-height: 1;
       text-align: center;
-      margin: 4px 0 2px 0;
+      margin: 2px 0 2px 0;
       color: var(--text-main);
     }
 
     .card-name {
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       text-align: center;
-      color: #e2e8f0;
+      color: #ffffff;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      margin: 2px 0 4px 0;
+      letter-spacing: -0.2px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
     }
 
     .card-meta {
       font-size: 10px;
       text-align: center;
       color: var(--text-muted);
-      margin-top: 6px;
-      padding-top: 5px;
+      margin-top: auto;
+      padding-top: 4px;
       border-top: 1px solid rgba(255,255,255,0.06);
     }
 
     /* Category Badges */
     .category-tag {
-      font-size: 9px;
+      font-size: 8.5px;
       font-weight: 700;
       text-transform: uppercase;
-      padding: 1px 5px;
+      padding: 1.5px 6px;
       border-radius: 4px;
       align-self: center;
-      margin-top: 4px;
+      margin-bottom: 2px;
     }
     .cat-noble { background: #3b2a59; color: #d8b4fe; }
     .cat-metal { background: #1b354b; color: #7dd3fc; }
@@ -2457,7 +2460,7 @@
 
       <!-- Botão Histórico / Caderno de Elementos -->
       <button class="btn-stats-badge" onclick="openStatsModal()">
-        <span>🧪</span> Meu Progresso <span class="badge-num" id="headerElementsSeenCount">0/30</span>
+        <span>🧪</span> Meu Progresso <span class="badge-num" id="headerElementsSeenCount">0/40</span>
       </button>
 
       <!-- Badge com o Nickname do Jogador -->
@@ -2634,7 +2637,7 @@
         </div>
 
         <div class="board-instructions">
-          <div class="elim-badge" id="elimBadge">Riscados: 0 / 30</div>
+          <div class="elim-badge" id="elimBadge">Riscados: 0 / 40</div>
           <button type="button" class="btn-action" style="padding: 4px 10px; font-size: 11px; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--accent-red); color: #fca5a5;" onclick="unmarkAllElements()" title="Restaura todos os elementos eliminados nesta partida">🔄 Desriscar Todos</button>
           <span style="font-size: 12px; color: var(--text-muted);">
             Desriscar individualmente é permitido <strong>apenas na mesma rodada</strong>.
@@ -2909,16 +2912,16 @@
         </div>
       </div>
 
-      <!-- Álbum Artístico dos 30 Elementos -->
+      <!-- Álbum Artístico dos 40 Elementos -->
       <div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <div style="font-size: 13px; font-weight: 800; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
-            <span>✨</span> Álbum dos 30 Elementos Químicos
+            <span>✨</span> Álbum dos 40 Elementos Químicos
           </div>
           <span style="font-size: 11px; color: var(--text-muted);">Iluminam-se ao jogar</span>
         </div>
         <div id="albumCompleteBadge" style="display:none; align-items:center; gap:10px; background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(56,189,248,0.15)); border: 1px solid var(--accent-green); border-radius: 10px; padding: 12px 18px; margin-bottom: 16px; color: #4ade80; font-weight: 700; font-size: 14px;">
-          🏆 Álbum Completo! Todos os 30 elementos foram descobertos!
+          🏆 Álbum Completo! Todos os 40 elementos foram descobertos!
         </div>
         <div class="discovered-elements-grid" id="discoveredElementsGrid">
           <!-- Preenchido via JS com cards de visual refinado -->
@@ -3263,6 +3266,116 @@
         sym: "Kr", name: "Criptônio", num: 36, mass: 83.798, group: 18, period: 4, cat: "noble",
         q: [true, false, true, false, true, false, false, false, true, true, false, false, true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, true],
         fact: "Durante anos, o metro foi definido cientificamente como 1.650.763,73 comprimentos de onda da luz emitida pelo Criptônio-86."
+      },
+      {
+        sym: "B",
+        name: "Boro",
+        num: 5,
+        mass: 10.81,
+        group: 13,
+        period: 2,
+        cat: "semimetal",
+        fact: "O boro é um semimetal essencial para vidros resistentes a choques térmicos (como o Pyrex) e na agricultura como micronutriente.",
+        q: [true, false, false, true, false, false, false, true, false, false, true, false, false, false, true, true, false, false, false, true, false, true, true, true, true, false, true, false, true, false]
+      },
+      {
+        sym: "Be",
+        name: "Berílio",
+        num: 4,
+        mass: 9.0122,
+        group: 2,
+        period: 2,
+        cat: "metal",
+        fact: "O berílio é um metal ultra leve e rígido, usado nos espelhos dourados do Telescópio Espacial James Webb e em ligas aeroespaciais.",
+        q: [true, true, false, false, false, false, true, true, false, false, true, false, false, false, false, false, false, false, false, true, false, false, true, false, true, false, true, false, false, false]
+      },
+      {
+        sym: "Co",
+        name: "Cobalto",
+        num: 27,
+        mass: 58.933,
+        group: 9,
+        period: 4,
+        cat: "transition",
+        fact: "O cobalto é essencial para a vida na molécula de vitamina B12 e um dos metais mais estratégicos do mundo nas baterias de íons de lítio.",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, false, true, false, false, true, true, false, true, true, true, true, true, true, false, false, false]
+      },
+      {
+        sym: "Ni",
+        name: "Níquel",
+        num: 28,
+        mass: 58.693,
+        group: 10,
+        period: 4,
+        cat: "transition",
+        fact: "O níquel é altamente resistente à corrosão e é a base de moedas, do aço inoxidável e de baterias recarregáveis.",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, false, true, false, false, true, true, false, true, true, true, true, true, true, false, false, false]
+      },
+      {
+        sym: "Sn",
+        name: "Estanho",
+        num: 50,
+        mass: 118.71,
+        group: 14,
+        period: 5,
+        cat: "metal",
+        fact: "O estanho foi fundamental na Idade do Bronze ao ser ligado ao cobre, e hoje protege latas de alimentos e faz a solda de circuitos eletrônicos.",
+        q: [true, true, false, false, false, false, false, false, true, true, true, false, false, false, false, false, false, false, false, true, false, true, true, true, false, false, true, true, false, false]
+      },
+      {
+        sym: "Pt",
+        name: "Platina",
+        num: 78,
+        mass: 195.08,
+        group: 10,
+        period: 6,
+        cat: "transition",
+        fact: "A platina é um metal nobre e denso que purifica gases nocivos em catalisadores de automóveis e dá origem à quimioterapia com cisplatina.",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, false, false, false, false, false, true, false, false, true, true, true, false, true, false, true, false]
+      },
+      {
+        sym: "W",
+        name: "Tungstênio",
+        num: 74,
+        mass: 183.84,
+        group: 6,
+        period: 6,
+        cat: "transition",
+        fact: "O tungstênio possui o mais alto ponto de fusão de todos os metais (3.422 °C), sendo a alma dos filamentos de lâmpadas incandescentes.",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, false, false, false, false, false, true, false, true, true, false, true, false, true, false, false, true]
+      },
+      {
+        sym: "Xe",
+        name: "Xenônio",
+        num: 54,
+        mass: 131.29,
+        group: 18,
+        period: 5,
+        cat: "noble",
+        fact: "O xenônio é um gás nobre pesado que emite luz azul-brilhante em faróis automotivos e funciona como propelente em motores de propulsão iônica no espaço.",
+        q: [true, false, true, false, true, false, false, false, true, true, false, false, true, true, false, false, false, false, false, false, false, false, true, false, true, false, true, false, false, true]
+      },
+      {
+        sym: "Cs",
+        name: "Césio",
+        num: 55,
+        mass: 132.91,
+        group: 1,
+        period: 6,
+        cat: "alkali",
+        fact: "O césio é tão reativo que explode em água fria e sua frequência atômica de ressonância define o padrão oficial da duração do segundo no mundo.",
+        q: [true, true, false, false, false, false, true, false, true, true, true, false, false, false, false, false, false, true, false, true, false, false, true, false, true, false, true, false, false, true]
+      },
+      {
+        sym: "Mn",
+        name: "Manganês",
+        num: 25,
+        mass: 54.938,
+        group: 7,
+        period: 4,
+        cat: "transition",
+        fact: "O manganês é o desoxidante mestre do aço e o ingrediente essencial nas clássicas pilhas alcalinas secas (dióxido de manganês).",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, false, true, true, true, true, true, true, true, true, true, true, true, false]
       }
     ];
 
@@ -3433,7 +3546,7 @@
       if (!sym) return;
       try {
         const seen = getSeenElementsSet();
-        if (seen.size >= 30 && !seen.has(sym)) return; // álbum completo
+        if (seen.size >= 40 && !seen.has(sym)) return; // álbum completo
         seen.add(sym);
         localStorage.setItem(STORAGE_KEY_SEEN_ELEMENTS, JSON.stringify(Array.from(seen)));
         updateStatsHeaderBadge();
@@ -3471,7 +3584,7 @@
     function updateStatsHeaderBadge() {
       const seen = getSeenElementsSet();
       const countEl = document.getElementById("headerElementsSeenCount");
-      if (countEl) countEl.textContent = seen.size + "/30";
+      if (countEl) countEl.textContent = seen.size + "/40";
     }
 
     /* Controle do Tutorial */
@@ -3547,7 +3660,7 @@
       document.getElementById("statMatchesWon").textContent = stats.won || 0;
       const rate = stats.played ? Math.round((stats.won / stats.played) * 100) : 0;
       document.getElementById("statWinRate").textContent = `${rate}%`;
-      document.getElementById("statElementsSeen").textContent = `${seen.size}/30`;
+      document.getElementById("statElementsSeen").textContent = `${seen.size}/40`;
 
       // Renderiza grade artística dos 30 elementos
       const grid = document.getElementById("discoveredElementsGrid");
@@ -3571,7 +3684,7 @@
 
       // Exibe medalha de álbum completo
       const albumBadge = document.getElementById('albumCompleteBadge');
-      if (albumBadge) albumBadge.style.display = seen.size >= 30 ? 'flex' : 'none';
+      if (albumBadge) albumBadge.style.display = seen.size >= 40 ? 'flex' : 'none';
 
       // Renderiza últimas partidas
       const list = document.getElementById("matchHistoryList");
@@ -3861,7 +3974,7 @@
 
     /* =========================================================
        COMANDOS DE SALA DE AULA (console do navegador)
-       liberarElementos()  → libera todos os 30 elementos (sessão)
+       liberarElementos()  → libera todos os 40 elementos (sessão)
        resetarElementos()  → volta ao estado inicial (só H)
        ========================================================= */
     window.liberarElementos = function() {
@@ -3869,7 +3982,7 @@
       try {
         localStorage.setItem(STORAGE_KEY_SEEN_ELEMENTS, JSON.stringify(allSyms));
         updateStatsHeaderBadge();
-        console.log('%c✅ Todos os 30 elementos foram liberados para esta sessão!', 'color: #38bdf8; font-weight: bold; font-size: 14px;');
+        console.log('%c✅ Todos os 40 elementos foram liberados para esta sessão!', 'color: #38bdf8; font-weight: bold; font-size: 14px;');
         console.log('%cPara reverter, digite: resetarElementos()', 'color: #94a3b8;');
       } catch(e) { console.error('Erro:', e); }
     };
@@ -4057,7 +4170,7 @@
       // Mensagem de boas-vindas no console para professores
       console.log('%c🧪 Cara a Cara Químico — Modo Sala de Aula', 'color: #38bdf8; font-size: 16px; font-weight: bold;');
       console.log('%cComandos disponíveis no console:', 'color: #94a3b8; font-size: 12px;');
-      console.log('%c  liberarElementos()  → Libera todos os 30 elementos temporariamente', 'color: #4ade80; font-size: 12px;');
+      console.log('%c  liberarElementos()  → Libera todos os 40 elementos temporariamente', 'color: #4ade80; font-size: 12px;');
       console.log('%c  resetarElementos()  → Volta ao estado inicial (só Hidrogênio)', 'color: #f87171; font-size: 12px;');
       updateStatsHeaderBadge();
       updateNicknameUI();
@@ -4793,7 +4906,7 @@
 
     function updateElimBadge() {
       const count = Object.keys(elementEliminatedRound).length;
-      document.getElementById("elimBadge").textContent = `Riscados: ${count} / 30`;
+      document.getElementById("elimBadge").textContent = `Riscados: ${count} / 40`;
     }
 
     // Reinicia o tabuleiro do jogador (quando erra um palpite faltando apenas 1 elemento)
