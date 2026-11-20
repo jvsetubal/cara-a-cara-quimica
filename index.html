@@ -2493,16 +2493,18 @@
       <div class="board-header">
         <div class="secret-display">
           <span style="font-size: 13px; color: var(--text-muted);">Seu Elemento:</span>
-          <div class="secret-chip">
+          <div class="secret-chip" style="cursor:pointer;" onclick="openElementDataModal(mySecret ? mySecret.sym : null)" title="Clique para ver dados científicos do elemento">
             <span id="mySecretSym">?</span>
             <span id="mySecretName" style="font-weight: normal; color: #fff;"></span>
           </div>
+          <button type="button" class="btn-action" style="padding: 4px 10px; font-size: 11px; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan);" onclick="openElementDataModal(mySecret ? mySecret.sym : null)" title="Dados científicos, ocorrência, estado, radioatividade e aplicações">📋 Dados</button>
         </div>
 
         <div class="board-instructions">
           <div class="elim-badge" id="elimBadge">Riscados: 0 / 30</div>
+          <button type="button" class="btn-action" style="padding: 4px 10px; font-size: 11px; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--accent-red); color: #fca5a5;" onclick="unmarkAllElements()" title="Restaura todos os elementos eliminados nesta partida">🔄 Desriscar Todos</button>
           <span style="font-size: 12px; color: var(--text-muted);">
-            Desriscar é permitido <strong>apenas na mesma rodada</strong> em que foi riscado.
+            Desriscar individualmente é permitido <strong>apenas na mesma rodada</strong>.
           </span>
         </div>
       </div>
@@ -2597,7 +2599,7 @@
           <div class="pass-turn-card">
             <div class="pass-turn-info">
               ✂️ <strong>Fase de Corte:</strong> Risque agora no tabuleiro os elementos descartados com a resposta que você recebeu.<br><br>
-              Quando terminar de eliminar suas cartas, clique abaixo para <strong>passar a vez</strong>. A IA só fará a pergunta dela após você passar!
+              Quando terminar de eliminar suas cartas, clique abaixo para <strong>passar a vez</strong>. <span id="passTurnNotice">O adversário só fará a pergunta dele após você passar!</span>
             </div>
 
             <button class="btn-pass-turn-premium" onclick="handleConfirmPassTurn()">
@@ -2847,6 +2849,56 @@
         <button class="btn-action" style="padding: 11px 24px;" onclick="goToStartScreen()">
           Menu Principal
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MODAL: DADOS CIENTÍFICOS DO ELEMENTO
+       ========================================================================= -->
+  <div id="elementDataModal" class="modal-overlay hidden" style="z-index: 9999;">
+    <div class="modal-card" style="max-width: 540px; text-align: left; padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div id="elDataModalSym" style="font-size: 24px; font-weight: 800; color: var(--accent-cyan); width: 44px; height: 44px; border-radius: 8px; background: #0b111c; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center;">H</div>
+          <div>
+            <h3 id="elDataModalName" style="font-size: 18px; margin: 0; color: #fff;">Hidrogênio</h3>
+            <span id="elDataModalMeta" style="font-size: 12px; color: var(--text-muted);">Z = 1 • Grupo 1 • Período 1</span>
+          </div>
+        </div>
+        <button type="button" class="btn-header" onclick="closeElementDataModal()" style="font-size: 16px; padding: 4px 10px;">✕</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;">
+        <div style="background: #0f1623; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">🌍 Ocorrência Natural</div>
+          <div id="elDataNatural" style="font-size: 13px; font-weight: 700; margin-top: 4px; color: #fff;">-</div>
+        </div>
+        <div style="background: #0f1623; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">🌡️ Estado (Temp. Ambiente)</div>
+          <div id="elDataState" style="font-size: 13px; font-weight: 700; margin-top: 4px; color: #fff;">-</div>
+        </div>
+        <div style="background: #0f1623; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">☢️ Radioativo?</div>
+          <div id="elDataRadioactive" style="font-size: 13px; font-weight: 700; margin-top: 4px; color: #fff;">-</div>
+        </div>
+        <div style="background: #0f1623; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">💧 Reage com Água?</div>
+          <div id="elDataReactsWater" style="font-size: 13px; font-weight: 700; margin-top: 4px; color: #fff;">-</div>
+        </div>
+      </div>
+
+      <div style="background: #0f1623; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 14px;">
+        <div style="font-size: 11px; color: var(--accent-cyan); text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">🏭 Áreas de Aplicação:</div>
+        <div id="elDataUsages" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+      </div>
+
+      <div style="background: rgba(56,189,248,0.08); border-left: 3px solid var(--accent-cyan); padding: 10px 12px; border-radius: 4px; font-size: 12.5px; color: #cbd5e1; margin-bottom: 16px;">
+        <strong>💡 Curiosidade:</strong> <span id="elDataFact">-</span>
+      </div>
+
+      <div style="text-align: right;">
+        <button type="button" class="btn-action btn-primary" style="padding: 8px 20px;" onclick="closeElementDataModal()">Fechar</button>
       </div>
     </div>
   </div>
@@ -3245,6 +3297,7 @@
       if (!sym) return;
       try {
         const seen = getSeenElementsSet();
+        if (seen.size >= 30 && !seen.has(sym)) return; // álbum completo
         seen.add(sym);
         localStorage.setItem(STORAGE_KEY_SEEN_ELEMENTS, JSON.stringify(Array.from(seen)));
         updateStatsHeaderBadge();
@@ -3685,6 +3738,182 @@
       } catch(e) { console.error('Erro:', e); }
     };
 
+    
+    /* ==========================================================================
+       DESRISCAR TODOS OS ELEMENTOS DO TABULEIRO
+       ========================================================================== */
+    function unmarkAllElements() {
+      if (gameOver) return;
+      if (Object.keys(elementEliminatedRound).length === 0) {
+        alert("Nenhum elemento está riscado no tabuleiro.");
+        return;
+      }
+      if (confirm("Deseja realmente desriscar todos os elementos eliminados do seu tabuleiro?")) {
+        elementEliminatedRound = {};
+        renderBoard();
+        updateElimBadge();
+      }
+    }
+
+    /* ==========================================================================
+       MODAL DE DADOS QUÍMICOS E CIENTÍFICOS DO ELEMENTO
+       ========================================================================== */
+    function openElementDataModal(elementSym) {
+      let el = null;
+      if (elementSym) {
+        el = ELEMENTS.find(e => e.sym === elementSym);
+      }
+      if (!el) {
+        el = mySecret || ELEMENTS[0];
+      }
+      if (!el) return;
+
+      document.getElementById("elDataModalSym").textContent = el.sym;
+      document.getElementById("elDataModalName").textContent = el.name;
+      document.getElementById("elDataModalMeta").textContent = `Z = ${el.num} • Massa: ${el.mass.toFixed(1)} • Grupo ${el.group} • Período ${el.period}`;
+
+      // 1. Ocorrência natural na Terra (q[0])
+      const natural = el.q[0] ? "✅ Sim (Ocorre naturalmente)" : "❌ Não (Sintético / Artificial)";
+      document.getElementById("elDataNatural").textContent = natural;
+
+      // 2. Estado físico à temperatura ambiente (q[10] Sólido, q[11] Líquido, q[12] Gasoso)
+      let state = "Desconhecido";
+      if (el.q[10]) state = "🪨 Sólido";
+      else if (el.q[11]) state = "💧 Líquido";
+      else if (el.q[12]) state = "💨 Gasoso";
+      document.getElementById("elDataState").textContent = state;
+
+      // 3. Radioativo (q[16])
+      const radio = el.q[16] ? "☢️ Sim (Elemento Radioativo)" : "🛡️ Não (Elemento Estável)";
+      document.getElementById("elDataRadioactive").textContent = radio;
+
+      // 4. Reage com água (q[17])
+      const water = el.q[17] ? "💥 Sim (Reage vigorosamente)" : "🚫 Não (Não reage espontaneamente)";
+      document.getElementById("elDataReactsWater").textContent = water;
+
+      // 5. Áreas de uso
+      const usagesContainer = document.getElementById("elDataUsages");
+      usagesContainer.innerHTML = "";
+
+      const areas = [
+        { label: "🏗️ Construção Civil", active: !!el.q[21] },
+        { label: "🔋 Baterias e Pilhas", active: !!el.q[25] },
+        { label: "🍎 Indústria Alimentícia", active: !!el.q[27] },
+        { label: "📦 Embalagens / Utensílios", active: !!el.q[23] },
+        { label: "🚀 Combustível / Energia", active: !!el.q[24] },
+        { label: "💊 Medicina e Farmácia", active: !!el.q[26] },
+        { label: "💡 Luzes e Lâmpadas", active: !!el.q[29] },
+        { label: "💻 Eletrônicos e Chips", active: !!el.q[22] },
+        { label: "🌾 Fertilizantes / Sal", active: !!el.q[28] }
+      ];
+
+      let anyUsage = false;
+      areas.forEach(a => {
+        if (a.active) {
+          anyUsage = true;
+          const tag = document.createElement("span");
+          tag.style.background = "rgba(56, 189, 248, 0.15)";
+          tag.style.border = "1px solid var(--accent-cyan)";
+          tag.style.color = "var(--accent-cyan)";
+          tag.style.padding = "4px 8px";
+          tag.style.borderRadius = "6px";
+          tag.style.fontSize = "11.5px";
+          tag.style.fontWeight = "600";
+          tag.textContent = a.label;
+          usagesContainer.appendChild(tag);
+        }
+      });
+
+      if (!anyUsage) {
+        usagesContainer.innerHTML = '<span style="font-size: 12px; color: var(--text-muted);">Aplicações restritas a laboratório ou pesquisa científica.</span>';
+      }
+
+      // Curiosidade
+      document.getElementById("elDataFact").textContent = el.fact || "Elemento químico de grande relevância científica e industrial.";
+
+      document.getElementById("elementDataModal").classList.remove("hidden");
+    }
+
+    function closeElementDataModal() {
+      document.getElementById("elementDataModal").classList.add("hidden");
+    }
+
+    /* ==========================================================================
+       DESRISCAR TODOS OS ELEMENTOS
+       ========================================================================== */
+    function unmarkAllElements() {
+      if (gameOver) return;
+      if (Object.keys(elementEliminatedRound).length === 0) {
+        alert("Nenhum elemento está riscado no momento.");
+        return;
+      }
+      if (confirm("Deseja realmente desriscar todos os elementos do tabuleiro?")) {
+        elementEliminatedRound = {};
+        renderBoard();
+        updateElimBadge();
+      }
+    }
+
+    /* ==========================================================================
+       MODAL DE DADOS DO ELEMENTO
+       ========================================================================== */
+    function openElementDataModal(elementSym) {
+      let el = null;
+      if (elementSym) el = ELEMENTS.find(e => e.sym === elementSym);
+      if (!el) el = mySecret || ELEMENTS[0];
+      if (!el) return;
+
+      document.getElementById("elDataModalSym").textContent = el.sym;
+      document.getElementById("elDataModalName").textContent = el.name;
+      document.getElementById("elDataModalMeta").textContent = "Z = " + el.num + " • Massa: " + el.mass.toFixed(1) + " • Grupo " + el.group + " • Período " + el.period;
+
+      document.getElementById("elDataNatural").textContent = el.q[0] ? "✅ Sim (ocorre naturalmente)" : "❌ Não (sintético / artificial)";
+
+      let state = "Desconhecido";
+      if (el.q[10]) state = "🪨 Sólido";
+      else if (el.q[11]) state = "💧 Líquido";
+      else if (el.q[12]) state = "💨 Gasoso";
+      document.getElementById("elDataState").textContent = state;
+
+      document.getElementById("elDataRadioactive").textContent = el.q[16] ? "☢️ Sim (elemento radioativo)" : "🛡️ Não (estável)";
+      document.getElementById("elDataReactsWater").textContent = el.q[17] ? "💥 Sim (reage com água)" : "🚫 Não";
+
+      const usagesContainer = document.getElementById("elDataUsages");
+      usagesContainer.innerHTML = "";
+      const areas = [
+        { label: "🏗️ Construção Civil", active: !!el.q[21] },
+        { label: "🔋 Baterias e Pilhas", active: !!el.q[25] },
+        { label: "🍎 Indústria Alimentícia", active: !!el.q[27] },
+        { label: "📦 Embalagens / Utensílios", active: !!el.q[23] },
+        { label: "🚀 Combustível / Energia", active: !!el.q[24] },
+        { label: "💊 Medicina e Farmácia", active: !!el.q[26] },
+        { label: "💡 Luzes e Lâmpadas", active: !!el.q[29] },
+        { label: "💻 Eletrônicos e Chips", active: !!el.q[22] },
+        { label: "🌾 Fertilizantes / Sal", active: !!el.q[28] }
+      ];
+      let anyUsage = false;
+      areas.forEach(function(a) {
+        if (a.active) {
+          anyUsage = true;
+          const tag = document.createElement("span");
+          tag.style.cssText = "background:rgba(56,189,248,0.15);border:1px solid var(--accent-cyan);color:var(--accent-cyan);padding:4px 8px;border-radius:6px;font-size:11.5px;font-weight:600;";
+          tag.textContent = a.label;
+          usagesContainer.appendChild(tag);
+        }
+      });
+      if (!anyUsage) {
+        usagesContainer.innerHTML = '<span style="font-size:12px;color:var(--text-muted);">Uso restrito a laboratório / pesquisa.</span>';
+      }
+
+      document.getElementById("elDataFact").textContent = el.fact || "Elemento químico de relevância científica.";
+      document.getElementById("elementDataModal").classList.remove("hidden");
+    }
+
+    function closeElementDataModal() {
+      const modal = document.getElementById("elementDataModal");
+      if (modal) modal.classList.add("hidden");
+    }
+
     window.onload = () => {
       // Mensagem de boas-vindas no console para professores
       console.log('%c🧪 Cara a Cara Químico — Modo Sala de Aula', 'color: #38bdf8; font-size: 16px; font-weight: bold;');
@@ -3911,11 +4140,17 @@
         const data = snapshot.val();
         if (!data) return;
 
-        // Se o outro jogador saiu durante a partida em andamento
-        if (data.status === "finished" && !gameOver && document.getElementById("screenGame").classList.contains("active")) {
-          alert("O outro jogador saiu da sala. A partida foi finalizada.");
-          goToStartScreen();
-          return;
+        // Se a partida foi finalizada (vitória ou desconexão)
+        if (data.status === "finished") {
+          if (data.guess && data.guess.correct) {
+            if (!gameOver) handleOnlineFinished(data);
+            return;
+          }
+          if (!gameOver && document.getElementById("screenGame").classList.contains("active")) {
+            alert("O outro jogador saiu da sala. A partida foi finalizada.");
+            goToStartScreen();
+            return;
+          }
         }
 
         if (data.status === "waiting") {
@@ -4721,6 +4956,13 @@ function getScientificExplanation(el, qIdx, realBool) {
       if (!el || !el.q) return false;
       const t = normalizeText(text);
 
+      // 0. Correspondência direta com uma das 30 perguntas pré-definidas
+      for (let qi = 0; qi < QUESTIONS.length; qi++) {
+        const normQ = normalizeText(QUESTIONS[qi]);
+        if (t === normQ) return !!el.q[qi];
+        if (t.length > 8 && normQ.length > 8 && (t.includes(normQ) || normQ.includes(t))) return !!el.q[qi];
+      }
+
       // 1. Número atômico / prótons / Z (Ex: "tem mais de 10 protons", "numero atomico maior que 20")
       const numMatch = t.match(/(?:numero atomico|protons?|z)\s*(?:maior|mais|superior|acima)\s*(?:que|de|a)?\s*(\d+)/);
       if (numMatch) {
@@ -4886,6 +5128,14 @@ function getScientificExplanation(el, qIdx, realBool) {
       document.getElementById("actionControlsStandard").style.display = "none";
       document.getElementById("actionControlsPassTurn").style.display = "flex";
       document.getElementById("turnRoleTag").textContent = "Fase de Corte (Risque suas cartas)";
+      const notice = document.getElementById("passTurnNotice");
+      if (notice) {
+        if (gameMode === "local") {
+          notice.textContent = "A IA só fará a pergunta dela após você passar!";
+        } else {
+          notice.textContent = "O adversário só fará a pergunta dele após você passar!";
+        }
+      }
     }
 
     function exitPassTurnPhase() {
