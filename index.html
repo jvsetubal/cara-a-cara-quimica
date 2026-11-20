@@ -2784,6 +2784,9 @@
           </div>
           <span style="font-size: 11px; color: var(--text-muted);">Iluminam-se ao jogar</span>
         </div>
+        <div id="albumCompleteBadge" style="display:none; align-items:center; gap:10px; background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(56,189,248,0.15)); border: 1px solid var(--accent-green); border-radius: 10px; padding: 12px 18px; margin-bottom: 16px; color: #4ade80; font-weight: 700; font-size: 14px;">
+          🏆 Álbum Completo! Todos os 30 elementos foram descobertos!
+        </div>
         <div class="discovered-elements-grid" id="discoveredElementsGrid">
           <!-- Preenchido via JS com cards de visual refinado -->
         </div>
@@ -3426,8 +3429,16 @@
           <div class="album-sym">${isDiscovered ? el.sym : '?'}</div>
           <div class="album-name">${isDiscovered ? el.name : '???'}</div>
         `;
+        if (isDiscovered) {
+          card.style.cursor = 'pointer';
+          (function(sym) { card.onclick = function() { closeStatsModal(); openElementDataModal(sym); }; })(el.sym);
+        }
         grid.appendChild(card);
       });
+
+      // Exibe medalha de álbum completo
+      const albumBadge = document.getElementById('albumCompleteBadge');
+      if (albumBadge) albumBadge.style.display = seen.size >= 30 ? 'flex' : 'none';
 
       // Renderiza últimas partidas
       const list = document.getElementById("matchHistoryList");
@@ -3744,15 +3755,10 @@
        ========================================================================== */
     function unmarkAllElements() {
       if (gameOver) return;
-      if (Object.keys(elementEliminatedRound).length === 0) {
-        alert("Nenhum elemento está riscado no tabuleiro.");
-        return;
-      }
-      if (confirm("Deseja realmente desriscar todos os elementos eliminados do seu tabuleiro?")) {
-        elementEliminatedRound = {};
-        renderBoard();
-        updateElimBadge();
-      }
+      if (Object.keys(elementEliminatedRound).length === 0) return; // nada para desriscar
+      elementEliminatedRound = {};
+      renderBoard();
+      updateElimBadge();
     }
 
     /* ==========================================================================
