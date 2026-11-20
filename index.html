@@ -3112,7 +3112,7 @@
           <div style="font-size: 13px; font-weight: 800; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
             <span>🏆</span> Conquistas da Carreira Científica
           </div>
-          <span id="achievementsCountBadge" style="font-size: 11px; color: #4ade80; font-weight: 700;">0/7 Desbloqueadas</span>
+          <span id="achievementsCountBadge" style="font-size: 11px; color: #4ade80; font-weight: 700;">0/15 Desbloqueadas</span>
         </div>
         <div class="achievements-grid" id="achievementsListGrid">
           <!-- Preenchido via JS -->
@@ -3944,6 +3944,24 @@
         icon: "🌐"
       },
       {
+        id: "win_streak_3",
+        title: "Sequência Atômica",
+        desc: "Vença 3 partidas consecutivas sem ser derrotado",
+        icon: "🔥"
+      },
+      {
+        id: "veteran_10",
+        title: "Pesquisador Veterano",
+        desc: "Complete 10 partidas disputadas na sua carreira",
+        icon: "🎖️"
+      },
+      {
+        id: "elements_5",
+        title: "Primeiros Passos",
+        desc: "Descubra seus primeiros 5 elementos químicos",
+        icon: "🌱"
+      },
+      {
         id: "elements_10",
         title: "Curioso da Química",
         desc: "Descubra 10 elementos químicos diferentes",
@@ -3954,6 +3972,12 @@
         title: "Colecionador Atômico",
         desc: "Descubra 20 elementos químicos no seu caderno",
         icon: "🧪"
+      },
+      {
+        id: "elements_30",
+        title: "Especialista em Matéria",
+        desc: "Descubra 30 elementos químicos diferentes",
+        icon: "💎"
       },
       {
         id: "elements_40",
@@ -3972,6 +3996,30 @@
         title: "Tiro Certeiro",
         desc: "Acerte o palpite final sem errar nenhuma dedução",
         icon: "🎯"
+      },
+      {
+        id: "noble_master",
+        title: "Nobreza Gasosa",
+        desc: "Jogue uma partida tendo um Gás Nobre como elemento secreto",
+        icon: "✨"
+      },
+      {
+        id: "radioactive_curie",
+        title: "Legado de Marie Curie",
+        desc: "Jogue uma partida com um elemento Radioativo",
+        icon: "☢️"
+      },
+      {
+        id: "metal_titan",
+        title: "Titã dos Metais",
+        desc: "Jogue com um Metal de Transição como elemento secreto",
+        icon: "🛡️"
+      },
+      {
+        id: "scholar_inspector",
+        title: "Estudioso da Tabela",
+        desc: "Abra a ficha científica de dados de um elemento",
+        icon: "📋"
       }
     ];
 
@@ -4054,7 +4102,7 @@
           opponent: opponentName || (gameMode === "online" ? "Adversário Online" : "Computador")
         };
 
-        // Verificação de conquistas por vitórias
+        // Verificação de conquistas por vitórias e histórico
         if (isWinner) {
           if (gameMode === "local") {
             unlockAchievement("first_win_ai");
@@ -4067,10 +4115,32 @@
           unlockAchievement("master_guesser");
         }
 
+        // Partidas jogadas (Veterano)
+        if ((stats.played || 0) >= 10) {
+          unlockAchievement("veteran_10");
+        }
+
+        // Verificação de sequência de 3 vitórias seguidas
+        if (stats.matches && stats.matches.length >= 2 && isWinner) {
+          if (stats.matches[0].won && stats.matches[1].won) {
+            unlockAchievement("win_streak_3");
+          }
+        }
+
+        // Conquistas por categoria / tipo do elemento secreto jogado
+        const myElObj = ELEMENTS.find(e => e.sym === myElementSym);
+        if (myElObj) {
+          if (myElObj.cat === "noble") unlockAchievement("noble_master");
+          if (myElObj.q[16]) unlockAchievement("radioactive_curie");
+          if (myElObj.cat === "transition") unlockAchievement("metal_titan");
+        }
+
         // Verificação de conquistas por coleção
         const seenCount = seen.size;
+        if (seenCount >= 5) unlockAchievement("elements_5");
         if (seenCount >= 10) unlockAchievement("elements_10");
         if (seenCount >= 20) unlockAchievement("elements_20");
+        if (seenCount >= 30) unlockAchievement("elements_30");
         if (seenCount >= 40) unlockAchievement("elements_40");
 
         if (!stats.matches) stats.matches = [];
@@ -4535,6 +4605,7 @@
        MODAL DE DADOS QUÍMICOS E CIENTÍFICOS DO ELEMENTO
        ========================================================================== */
     function openElementDataModal(elementSym) {
+      unlockAchievement("scholar_inspector");
       let el = null;
       if (elementSym) {
         el = ELEMENTS.find(e => e.sym === elementSym);
