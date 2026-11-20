@@ -4960,86 +4960,111 @@ function getScientificExplanation(el, qIdx, realBool) {
     // Avaliador inteligente para perguntas personalizadas no modo contra o computador ou online
     function evaluateCustomQuestionForElement(text, el) {
       if (!el || !el.q) return false;
-      const t = normalizeText(text);
+      const cleanT = normalizeText(text);
+      const t = " " + cleanT + " ";
 
       // 0. Correspondência direta com uma das 30 perguntas pré-definidas
       for (let qi = 0; qi < QUESTIONS.length; qi++) {
         const normQ = normalizeText(QUESTIONS[qi]);
-        if (t === normQ) return !!el.q[qi];
-        if (t.length > 8 && normQ.length > 8 && (t.includes(normQ) || normQ.includes(t))) return !!el.q[qi];
+        if (cleanT === normQ) return !!el.q[qi];
+        if (cleanT.length > 8 && normQ.length > 8 && (cleanT.includes(normQ) || normQ.includes(cleanT))) {
+          return !!el.q[qi];
+        }
       }
 
-      // 1. Número atômico / prótons / Z (Ex: "tem mais de 10 protons", "numero atomico maior que 20")
-      const numMatch = t.match(/(?:numero atomico|protons?|z)\s*(?:maior|mais|superior|acima)\s*(?:que|de|a)?\s*(\d+)/);
-      if (numMatch) {
-        const threshold = parseInt(numMatch[1], 10);
-        return el.num > threshold;
+      // 1. Período / Linha da tabela (p 1, p1, periodo 1, linha 1, etc.)
+      const periodMatch = t.match(/\b(?:p|periodo|linha)\s*([1-7])\b/);
+      if (periodMatch) {
+        const pNum = parseInt(periodMatch[1], 10);
+        return el.period === pNum;
+      }
+      if (t.includes(" primeiro periodo ") || t.includes(" primeira linha ")) return el.period === 1;
+      if (t.includes(" segundo periodo ") || t.includes(" segunda linha ")) return el.period === 2;
+      if (t.includes(" terceiro periodo ") || t.includes(" terceira linha ")) return el.period === 3;
+      if (t.includes(" quarto periodo ") || t.includes(" quarta linha ")) return el.period === 4;
+      if (t.includes(" quinto periodo ") || t.includes(" quinta linha ")) return el.period === 5;
+      if (t.includes(" sexto periodo ") || t.includes(" sexta linha ")) return el.period === 6;
+      if (t.includes(" setimo periodo ") || t.includes(" setima linha ")) return el.period === 7;
+      if (t.includes("periodo 1 2 ou 3") || t.includes("primeiros 3 periodos") || t.includes("periodos iniciais")) return !!el.q[7];
+
+      // 2. Grupo / Família / Coluna da tabela (g 1, g1, grupo 1, familia 1, coluna 1, etc.)
+      const groupMatch = t.match(/\b(?:g|grupo|familia|coluna)\s*([1-9]|1[0-8])\b/);
+      if (groupMatch) {
+        const gNum = parseInt(groupMatch[1], 10);
+        return el.group === gNum;
+      }
+      if (t.includes("grupo 1 ou 2") || t.includes("grupos 1 ou 2") || t.includes("grupo 1 e 2") || t.includes("g 1 ou 2") || t.includes("g1 ou g2")) return !!el.q[6];
+
+      // 3. Número atômico / prótons / Z (Ex: "z = 1", "z 1", "numero atomico 8", "tem 8 protons")
+      const exactNumMatch = t.match(/\b(?:numero atomico|protons?|z)\s*(?:e|igual|de)?\s*(\d+)\b/);
+      if (exactNumMatch && !t.match(/(?:maior|mais|superior|acima|menor|menos|inferior|abaixo)/)) {
+        const val = parseInt(exactNumMatch[1], 10);
+        return el.num === val;
+      }
+      const numMatchGreater = t.match(/(?:numero atomico|protons?|z)\s*(?:maior|mais|superior|acima|passa|alem)\s*(?:que|de|a)?\s*(\d+)/);
+      if (numMatchGreater) {
+        return el.num > parseInt(numMatchGreater[1], 10);
       }
       const numMatchLess = t.match(/(?:numero atomico|protons?|z)\s*(?:menor|menos|inferior|abaixo)\s*(?:que|de|a)?\s*(\d+)/);
       if (numMatchLess) {
-        const threshold = parseInt(numMatchLess[1], 10);
-        return el.num < threshold;
+        return el.num < parseInt(numMatchLess[1], 10);
       }
+      if (t.includes("mais de 20 protons") || t.includes("mais de vinte protons")) return !!el.q[8];
 
-      // 2. Massa atômica (Ex: "massa maior que 50", "massa atomica menor que 30")
-      const massMatch = t.match(/(?:massa|peso)\s*(?:maior|mais|superior|acima)\s*(?:que|de|a)?\s*(\d+)/);
-      if (massMatch) {
-        const threshold = parseInt(massMatch[1], 10);
-        return el.mass > threshold;
+      // 4. Massa atômica
+      const massMatchGreater = t.match(/(?:massa|peso)\s*(?:atomica)?\s*(?:maior|mais|superior|acima|passa|alem)\s*(?:que|de|a)?\s*(\d+)/);
+      if (massMatchGreater) {
+        return el.mass > parseInt(massMatchGreater[1], 10);
       }
-      const massMatchLess = t.match(/(?:massa|peso)\s*(?:menor|menos|inferior|abaixo)\s*(?:que|de|a)?\s*(\d+)/);
+      const massMatchLess = t.match(/(?:massa|peso)\s*(?:atomica)?\s*(?:menor|menos|inferior|abaixo)\s*(?:que|de|a)?\s*(\d+)/);
       if (massMatchLess) {
-        const threshold = parseInt(massMatchLess[1], 10);
-        return el.mass < threshold;
+        return el.mass < parseInt(massMatchLess[1], 10);
       }
+      if (t.includes("massa maior que 50") || t.includes("massa superior a 50")) return !!el.q[9];
 
-      // 3. Família / Grupo específico
-      if (t.includes("gas nobre") || t.includes("gases nobres")) return el.q[4];
-      if (t.includes("metal de transicao") || t.includes("metais de transicao")) return el.q[5];
-      if (t.includes("alcalino terroso") || t.includes("alcalinos terrosos")) return el.cat === "metal" && el.group === 2;
-      if (t.includes("alcalino") || t.includes("alcalinos")) return el.cat === "alkali";
+      // 5. Família / Categoria química específica
+      if (t.includes("gas nobre") || t.includes("gases nobres")) return !!el.q[4];
+      if (t.includes("metal de transicao") || t.includes("metais de transicao")) return !!el.q[5];
+      if (t.includes("alcalino terroso") || t.includes("alcalinos terrosos")) return el.group === 2;
+      if (t.includes("alcalino") || t.includes("alcalinos")) return el.cat === "alkali" || el.group === 1;
       if (t.includes("halogenio") || t.includes("halogenios")) return el.group === 17;
-      if (t.includes("semimetal") || t.includes("metaloide")) return el.q[3];
-      if (t.includes("nao metal") || t.includes("ametal") || t.includes("ametais")) return el.q[2];
-      if (t.includes("metal") || t.includes("metalico")) return el.q[1];
+      if (t.includes("calcogenio") || t.includes("calcogenios")) return el.group === 16;
+      if (t.includes("semimetal") || t.includes("semimetais") || t.includes("metaloide") || t.includes("metaloides")) return !!el.q[3];
+      if (t.includes("nao metal") || t.includes("nao metais") || t.includes("ametal") || t.includes("ametais")) return !!el.q[2];
+      if (t.includes("metal") || t.includes("metais") || t.includes("metalico")) return !!el.q[1];
 
-      // 4. Período / Linha da tabela
-      if (t.includes("primeira linha") || t.includes("primeiro periodo") || t.includes("periodo 1")) return el.period === 1;
-      if (t.includes("segunda linha") || t.includes("segundo periodo") || t.includes("periodo 2")) return el.period === 2;
-      if (t.includes("terceira linha") || t.includes("terceiro periodo") || t.includes("periodo 3")) return el.period === 3;
-      if (t.includes("quarta linha") || t.includes("quarto periodo") || t.includes("periodo 4")) return el.period === 4;
+      // 6. Estado físico à temperatura ambiente
+      if (t.includes("gasoso") || t.includes("gasosa") || t.includes("gas") || t.includes("vapor")) return !!el.q[12];
+      if (t.includes("liquido") || t.includes("fluido")) return !!el.q[11];
+      if (t.includes("solido") || t.includes("duro") || t.includes("rigido")) return !!el.q[10];
 
-      // 5. Estado físico
-      if (t.includes("gas") || t.includes("gasoso") || t.includes("gasosa") || t.includes("vapor")) return el.q[12];
-      if (t.includes("liquido") || t.includes("fluido")) return el.q[11];
-      if (t.includes("solido") || t.includes("duro") || t.includes("rigido")) return el.q[10];
+      // 7. Ocorrência natural, reatividade e localização
+      if (t.includes("reage com agua") || t.includes("reacao com agua") || (t.includes("reage") && t.includes("agua"))) return !!el.q[17];
+      if (t.includes("radioativ") || t.includes("radiacao") || t.includes("nuclear") || t.includes("emite radiacao")) return !!el.q[16];
+      if (t.includes("ima") || t.includes("magnet") || t.includes("atrai") || t.includes("ferromagnet")) return !!el.q[18];
+      if (t.includes("natural") || t.includes("natureza") || t.includes("terra")) return !!el.q[0];
+      if (t.includes("ar") || t.includes("atmosfera") || t.includes("respiramos")) return !!el.q[13];
+      if (t.includes("mar") || t.includes("oceano") || t.includes("salmoura") || t.includes("agua do mar")) return !!el.q[14];
+      if (t.includes("corpo humano") || t.includes("organismo") || t.includes("celula") || t.includes("sangue") || t.includes("osso")) return !!el.q[15];
+      if (t.includes("crosta") || t.includes("abundante") || t.includes("solo") || t.includes("rocha")) return !!el.q[20];
+      if (t.includes("minerio") || t.includes("mina") || t.includes("jazida")) return !!el.q[19];
 
-      // 6. Ocorrência natural e localização
-      if (t.includes("natural") || t.includes("natureza") || t.includes("terra")) return el.q[0];
-      if (t.includes("ar") || t.includes("atmosfera") || t.includes("respiramos")) return el.q[13];
-      if (t.includes("mar") || t.includes("oceano") || t.includes("salmoura")) return el.q[14];
-      if (t.includes("corpo humano") || t.includes("organismo") || t.includes("celula") || t.includes("sangue") || t.includes("osso")) return el.q[15];
-      if (t.includes("crosta") || t.includes("abundante") || t.includes("solo") || t.includes("rocha")) return el.q[20];
-      if (t.includes("radioativ") || t.includes("radiacao") || t.includes("nuclear")) return el.q[16];
-      if (t.includes("reage com agua") || t.includes("agua")) return el.q[17];
-      if (t.includes("ima") || t.includes("magnet") || t.includes("atrai")) return el.q[18];
-      if (t.includes("minerio") || t.includes("mina") || t.includes("jazida")) return el.q[19];
+      // 8. Usos e Aplicações
+      if (t.includes("construcao") || t.includes("civil") || t.includes("predio") || t.includes("ponte") || t.includes("estrutura") || t.includes("viga")) return !!el.q[21];
+      if (t.includes("eletron") || t.includes("computador") || t.includes("chip") || t.includes("celular") || t.includes("tecnologia") || t.includes("circuito")) return !!el.q[22];
+      if (t.includes("embalagem") || t.includes("panela") || t.includes("lata") || t.includes("utensilio") || t.includes("cozinha")) return !!el.q[23];
+      if (t.includes("combustivel") || t.includes("foguete") || t.includes("energia") || t.includes("queima") || t.includes("inflamavel")) return !!el.q[24];
+      if (t.includes("bateria") || t.includes("pilha") || t.includes("acumulador")) return !!el.q[25];
+      if (t.includes("medic") || t.includes("remedio") || t.includes("hospital") || t.includes("farmacia") || t.includes("saude")) return !!el.q[26];
+      if (t.includes("comida") || t.includes("alimento") || t.includes("alimentici") || t.includes("comer") || t.includes("bebida")) return !!el.q[27];
+      if (t.includes("sal de cozinha") || t.includes("fertilizante") || t.includes("adubo") || t.includes("planta") || t.includes("lavoura")) return !!el.q[28];
+      if (t.includes("lampada") || t.includes("ilumin") || t.includes("luz") || t.includes("neon") || t.includes("brilho")) return !!el.q[29];
 
-      // 7. Usos e Aplicações
-      if (t.includes("construcao") || t.includes("predio") || t.includes("ponte") || t.includes("estrutura") || t.includes("viga")) return el.q[21];
-      if (t.includes("eletron") || t.includes("computador") || t.includes("chip") || t.includes("celular") || t.includes("tecnologia") || t.includes("circuito")) return el.q[22];
-      if (t.includes("embalagem") || t.includes("panela") || t.includes("lata") || t.includes("utensilio") || t.includes("cozinha")) return el.q[23];
-      if (t.includes("combustivel") || t.includes("foguete") || t.includes("energia") || t.includes("queima") || t.includes("inflamavel")) return el.q[24];
-      if (t.includes("bateria") || t.includes("pilha") || t.includes("acumulador")) return el.q[25];
-      if (t.includes("medic") || t.includes("remedio") || t.includes("hospital") || t.includes("farmacia") || t.includes("saude")) return el.q[26];
-      if (t.includes("comida") || t.includes("alimento") || t.includes("alimentici") || t.includes("comer") || t.includes("bebida")) return el.q[27];
-      if (t.includes("sal de cozinha") || t.includes("fertilizante") || t.includes("adubo") || t.includes("planta") || t.includes("lavoura")) return el.q[28];
-      if (t.includes("lampada") || t.includes("ilumin") || t.includes("luz") || t.includes("neon") || t.includes("brilho")) return el.q[29];
-
-      // 8. Menção direta ao nome ou símbolo
+      // 9. Menção direta ao nome ou símbolo (Ex: "é o hidrogênio?", "é H?", "h")
       const normName = normalizeText(el.name);
-      const normSym = normalizeText(el.sym);
-      if (t.includes(normName) || t.split(" ").includes(normSym)) return true;
+      const words = cleanT.split(" ");
+      if (cleanT.includes(normName)) return true;
+      if (words.includes(el.sym.toLowerCase())) return true;
 
       return false;
     }
