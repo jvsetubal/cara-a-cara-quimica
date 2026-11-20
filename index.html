@@ -4420,20 +4420,33 @@
     }
 
     function confirmElementPick() {
-      if (!tempSelectedElement) return;
-      mySecret = tempSelectedElement;
+      try {
+        if (!tempSelectedElement) {
+          alert("Por favor, selecione um elemento antes de confirmar!");
+          return;
+        }
+        mySecret = tempSelectedElement;
 
-      if (gameMode === "local") {
-        const randIdx = Math.floor(Math.random() * ELEMENTS.length);
-        opponentSecret = ELEMENTS[randIdx];
-        startLocalMatch();
-      } else {
-        const updates = {};
-        updates[`${myRole}/element`] = mySecret.sym;
-        updates[`${myRole}/ready`] = true;
-        document.getElementById("btnConfirmPick").disabled = true;
-        document.getElementById("btnConfirmPick").textContent = "Aguardando Oponente...";
-        roomRef.update(updates);
+        if (gameMode === "local") {
+          const randIdx = Math.floor(Math.random() * ELEMENTS.length);
+          opponentSecret = ELEMENTS[randIdx];
+          startLocalMatch();
+        } else {
+          const updates = {};
+          updates[`${myRole}/element`] = mySecret.sym;
+          updates[`${myRole}/ready`] = true;
+          const btn = document.getElementById("btnConfirmPick");
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = "Aguardando Oponente...";
+          }
+          if (roomRef) {
+            roomRef.update(updates);
+          }
+        }
+      } catch (err) {
+        console.error("Erro em confirmElementPick:", err);
+        alert("Erro ao confirmar elemento: " + err.message);
       }
     }
 
@@ -4441,65 +4454,91 @@
        INÍCIO DA PARTIDA (LOCAL & ONLINE)
        ========================================================================== */
     function startLocalMatch() {
-      gameOver = false;
-      isMyTurn = true;
-      isGuessMode = false;
-      currentRoundNumber = 1;
-      elementEliminatedRound = {};
-      usedQuestionsSet.clear();
-      cpuCandidates = [...ELEMENTS];
-      localHistory = [];
+      try {
+        gameOver = false;
+        isMyTurn = true;
+        isGuessMode = false;
+        currentRoundNumber = 1;
+        elementEliminatedRound = {};
+        usedQuestionsSet.clear();
+        cpuCandidates = [...ELEMENTS];
+        localHistory = [];
 
-      document.getElementById("mySecretSym").textContent = mySecret.sym;
-      document.getElementById("mySecretName").textContent = `(${mySecret.name})`;
-      document.getElementById("victoryModal").classList.add("hidden");
-      hideBanner();
-      hideAnswerModal();
+        // Garante restauração limpa de controles e modais
+        exitPassTurnPhase();
+        hideBlockOverlay();
+        hideBanner();
+        hideAnswerModal();
+        const vModal = document.getElementById("victoryModal");
+        if (vModal) vModal.classList.add("hidden");
 
-      renderBoard();
-      populateQuestionSelect();
-      updateTurnUI();
-      updateElimBadge();
+        if (mySecret) {
+          const symEl = document.getElementById("mySecretSym");
+          const nameEl = document.getElementById("mySecretName");
+          if (symEl) symEl.textContent = mySecret.sym;
+          if (nameEl) nameEl.textContent = `(${mySecret.name})`;
+        }
 
-      clearHistoryUI();
-      pushHistoryCard({
-        type: "system",
-        author: "SISTEMA",
-        title: "Partida Iniciada",
-        content: `Seu elemento secreto é <strong>${mySecret.name} (${mySecret.sym})</strong>. O computador já definiu o dele.`
-      });
+        renderBoard();
+        populateQuestionSelect();
+        updateTurnUI();
+        updateElimBadge();
 
-      showScreen("screenGame");
+        clearHistoryUI();
+        pushHistoryCard({
+          type: "system",
+          author: "SISTEMA",
+          title: "Partida Iniciada",
+          content: `Seu elemento secreto é <strong>${mySecret ? mySecret.name : ''} (${mySecret ? mySecret.sym : ''})</strong>. O computador já definiu o dele.`
+        });
+
+        showScreen("screenGame");
+      } catch (err) {
+        console.error("Erro ao iniciar partida local:", err);
+        alert("Erro ao iniciar partida: " + err.message);
+      }
     }
 
     function startOnlineMatch(data) {
-      gameOver = false;
-      isGuessMode = false;
-      currentRoundNumber = 1;
-      elementEliminatedRound = {};
-      usedQuestionsSet.clear();
-      localHistory = [];
+      try {
+        gameOver = false;
+        isGuessMode = false;
+        currentRoundNumber = 1;
+        elementEliminatedRound = {};
+        usedQuestionsSet.clear();
+        localHistory = [];
 
-      document.getElementById("mySecretSym").textContent = mySecret.sym;
-      document.getElementById("mySecretName").textContent = `(${mySecret.name})`;
-      document.getElementById("victoryModal").classList.add("hidden");
-      hideBanner();
-      hideAnswerModal();
+        exitPassTurnPhase();
+        hideBlockOverlay();
+        hideBanner();
+        hideAnswerModal();
+        const vModal = document.getElementById("victoryModal");
+        if (vModal) vModal.classList.add("hidden");
 
-      renderBoard();
-      populateQuestionSelect();
-      updateElimBadge();
-      clearHistoryUI();
+        if (mySecret) {
+          const symEl = document.getElementById("mySecretSym");
+          const nameEl = document.getElementById("mySecretName");
+          if (symEl) symEl.textContent = mySecret.sym;
+          if (nameEl) nameEl.textContent = `(${mySecret.name})`;
+        }
 
-      pushHistoryCard({
-        type: "system",
-        author: "SISTEMA",
-        title: "Partida Online Iniciada",
-        content: `Ambos os jogadores confirmaram seus elementos. Boa dedução!`
-      });
+        renderBoard();
+        populateQuestionSelect();
+        updateElimBadge();
+        clearHistoryUI();
 
-      syncOnlineGame(data);
-      showScreen("screenGame");
+        pushHistoryCard({
+          type: "system",
+          author: "SISTEMA",
+          title: "Partida Online Iniciada",
+          content: `Ambos os jogadores confirmaram seus elementos. Boa dedução!`
+        });
+
+        syncOnlineGame(data);
+        showScreen("screenGame");
+      } catch (err) {
+        console.error("Erro ao iniciar partida online:", err);
+      }
     }
 
     /* ==========================================================================
