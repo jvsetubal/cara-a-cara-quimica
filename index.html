@@ -1746,6 +1746,28 @@
       text-align: center;
     }
 
+    
+    /* Avatar do Professor na tela de vitória / derrota */
+    .result-professor-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .result-professor-img {
+      width: 105px;
+      height: 105px;
+      object-fit: cover;
+      object-position: top center;
+      border-radius: 50%;
+      border: 3px solid var(--accent-red);
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.4);
+      background: #0f172a;
+    }
+    .result-professor-img.win {
+      border-color: #4ade80;
+      box-shadow: 0 0 25px rgba(74, 222, 128, 0.4);
+    }
+
     @keyframes modalPop {
       0% { transform: scale(0.92); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
@@ -2773,10 +2795,12 @@
 
       <div class="mode-options">
         <div class="btn-mode" onclick="startLocalFlow()">
-          <div class="mode-icon">🤖</div>
+          <div class="mode-icon" style="overflow: hidden; padding: 0;">
+            <img src="professor-derrota.png" alt="Professor Mauro" style="width: 100%; height: 100%; object-fit: cover; object-position: top center;" />
+          </div>
           <div>
-            <div class="mode-title">Jogar Local (vs Computador)</div>
-            <div class="mode-desc">Enfrente o computador em um duelo divertido e teste seus conhecimentos químicos!</div>
+            <div class="mode-title">Duelo contra o Professor (IA)</div>
+            <div class="mode-desc">Enfrente a IA do Professor em um duelo científico desafiador e teste sua dedução química!</div>
           </div>
         </div>
 
@@ -3241,6 +3265,9 @@
        ========================================================================= -->
   <div id="victoryModal" class="modal-overlay hidden">
     <div class="modal-card">
+      <div class="result-professor-wrap" id="resultProfessorWrap">
+        <img id="resultProfessorImg" src="professor-derrota.png" alt="Professor" class="result-professor-img" />
+      </div>
       <div id="winBadge" class="winner-badge win-player">Vitória!</div>
       <h2 id="winTitle" style="font-size: 24px; margin-bottom: 6px;">Elemento Revelado!</h2>
       <p id="winSubtitle" style="color: var(--text-muted); font-size: 14px;">A partida foi concluída.</p>
@@ -6645,16 +6672,28 @@
       const title = document.getElementById("winTitle");
       const subtitle = document.getElementById("winSubtitle");
 
+      const profImg = document.getElementById("resultProfessorImg");
+
       if (isWinner) {
         badge.className = "winner-badge win-player";
         badge.textContent = "🎉 VITÓRIA!";
         title.textContent = "Parabéns, Você Venceu!";
-        subtitle.textContent = "Você desvendou o elemento químico secreto do seu adversário!";
+        subtitle.textContent = "Você desvendou o elemento químico secreto com dedução precisa de cientista!";
+        if (profImg) {
+          profImg.src = "professor-marista.png";
+          profImg.className = "result-professor-img win";
+          profImg.alt = "Professor Satisfeito com sua Vitória";
+        }
       } else {
         badge.className = "winner-badge win-opp";
         badge.textContent = "DERROTA";
         title.textContent = `${winnerName} Venceu!`;
-        subtitle.textContent = "O adversário adivinhou o seu elemento secreto primeiro.";
+        subtitle.textContent = (gameMode === "local" ? "O Professor Mauro adivinhou o seu elemento primeiro! Revise suas notas e tente outra vez." : "O adversário adivinhou o seu elemento secreto primeiro.");
+        if (profImg) {
+          profImg.src = "professor-derrota.png";
+          profImg.className = "result-professor-img";
+          profImg.alt = "Professor Mauro Sério - Não foi dessa vez!";
+        }
       }
 
       document.getElementById("revealP1Label").textContent = (gameMode === "local" ? "Seu Elemento" : "Jogador 1");
