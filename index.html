@@ -3118,165 +3118,37 @@
        ========================================================================== */
     const ELEMENTS = [
       {
-        sym: "H", name: "Hidrogênio", num: 1, mass: 1.008, group: 1, period: 1, cat: "non-metal",
-        q: [true, false, true, false, false, false, true, true, false, false, false, false, true, true, true, true, false, false, false, false, false, false, true, false, true, true, true, true, true, false],
-        fact: "O Hidrogênio compõe cerca de 75% de toda a massa bariônica do universo e é o combustível que alimenta o brilho do Sol!"
+        sym: "H",
+        name: "Hidrogênio",
+        num: 1,
+        mass: 1.008,
+        group: 1,
+        period: 1,
+        cat: "non-metal",
+        fact: "O Hidrogênio compõe cerca de 75% de toda a massa bariônica do universo e é o combustível que alimenta o brilho do Sol!",
+        q: [true, false, true, false, false, false, true, true, false, false, false, false, true, true, true, true, false, false, false, false, false, false, true, false, true, true, true, true, true, false]
       },
       {
-        sym: "He", name: "Hélio", num: 2, mass: 4.0026, group: 18, period: 1, cat: "noble",
-        q: [true, false, true, false, true, false, false, true, false, false, false, false, true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, true],
-        fact: "O Hélio é o único elemento que não solidifica sob resfriamento comum à pressão atmosférica, exigindo pressões extremas."
+        sym: "He",
+        name: "Hélio",
+        num: 2,
+        mass: 4.0026,
+        group: 18,
+        period: 1,
+        cat: "noble",
+        fact: "O Hélio é o único elemento que não solidifica sob resfriamento comum à pressão atmosférica, exigindo pressões extremas.",
+        q: [true, false, true, false, true, false, false, true, false, false, false, false, true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, true]
       },
       {
-        sym: "Li", name: "Lítio", num: 3, mass: 6.94, group: 1, period: 2, cat: "alkali",
-        q: [true, true, false, false, false, false, true, true, false, false, true, false, false, false, true, true, false, true, false, true, false, false, true, false, false, true, true, false, false, false],
-        fact: "O Lítio é o metal mais leve da tabela periódica, capaz de flutuar tanto em água quanto em óleo mineral!"
-      },
-      {
-        sym: "C", name: "Carbono", num: 6, mass: 12.011, group: 14, period: 2, cat: "non-metal",
-        q: [true, false, true, false, false, false, false, true, false, false, true, false, false, true, true, true, false, false, false, false, false, true, true, true, true, true, true, true, true, false],
-        fact: "Toda a química da vida orgânica na Terra é baseada no Carbono, elemento formador tanto do grafite macio quanto do diamante duro."
-      },
-      {
-        sym: "N", name: "Nitrogênio", num: 7, mass: 14.007, group: 15, period: 2, cat: "non-metal",
-        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, false, false, false, false, false, true, true, false, false, true, true, true, true],
-        fact: "O gás Nitrogênio compõe aproximadamente 78% do ar que respiramos, diluindo o oxigênio e estabilizando a atmosfera."
-      },
-      {
-        sym: "O", name: "Oxigênio", num: 8, mass: 15.999, group: 16, period: 2, cat: "non-metal",
-        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, false, true, false, true, false, true, false, true, false, true, true, false, false],
-        fact: "Em estado líquido ou sólido, o oxigênio possui uma marcante tonalidade azul clara e é atraído por campos magnéticos."
-      },
-      {
-        sym: "F", name: "Flúor", num: 9, mass: 18.998, group: 17, period: 2, cat: "non-metal",
-        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, true, false, false, false, false, true, true, false, false, true, false, false, false],
-        fact: "O Flúor é o elemento químico mais reativo e mais eletronegativo de toda a tabela periódica, atacando até mesmo o vidro!"
-      },
-      {
-        sym: "Ne", name: "Neônio", num: 10, mass: 20.180, group: 18, period: 2, cat: "noble",
-        q: [true, false, true, false, true, false, false, true, false, false, false, false, true, true, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, true],
-        fact: "A luminescência elétrica original do gás Neônio é puramente vermelho-alaranjada; outras cores em luminosos usam gases distintos."
-      },
-      {
-        sym: "Na", name: "Sódio", num: 11, mass: 22.990, group: 1, period: 3, cat: "alkali",
-        q: [true, true, false, false, false, false, true, true, false, false, true, false, false, false, true, true, false, true, false, false, true, false, true, false, false, true, true, true, true, true],
-        fact: "O símbolo 'Na' vem do latim 'Natrium'. Embora reaja explosivamente com água, é indispensável na dieta diária no sal (NaCl)."
-      },
-      {
-        sym: "Mg", name: "Magnésio", num: 12, mass: 24.305, group: 2, period: 3, cat: "metal",
-        q: [true, true, false, false, false, false, true, true, false, false, true, false, false, false, true, true, false, true, false, true, true, true, true, true, false, true, true, true, true, true],
-        fact: "No coração de cada molécula de clorofila nas plantas há um átomo de magnésio, tornando a fotossíntese do planeta possível!"
-      },
-      {
-        sym: "Al", name: "Alumínio", num: 13, mass: 26.982, group: 13, period: 3, cat: "metal",
-        q: [true, true, false, false, false, false, false, true, false, false, true, false, false, false, true, false, false, false, false, true, true, true, true, true, false, false, true, false, false, false],
-        fact: "No século XIX, o alumínio puro era considerado mais nobre e custoso que o ouro pela tremenda dificuldade de refinamento na época."
-      },
-      {
-        sym: "Si", name: "Silício", num: 14, mass: 28.085, group: 14, period: 3, cat: "semimetal",
-        q: [true, false, false, true, false, false, false, true, false, false, true, false, false, false, true, true, false, false, false, false, true, true, true, true, false, true, true, false, false, false],
-        fact: "O silício é a espinha dorsal de chips de computador e células solares, tendo batizado o famoso 'Vale do Silício' na Califórnia."
-      },
-      {
-        sym: "P", name: "Fósforo", num: 15, mass: 30.974, group: 15, period: 3, cat: "non-metal",
-        q: [true, false, true, false, false, false, false, true, false, false, true, false, false, false, true, true, false, false, false, false, false, false, true, true, false, true, true, true, true, false],
-        fact: "Descoberto em 1669 por um alquimista a partir de urina concentrada, o fósforo branco brilha no escuro em contato com o ar."
-      },
-      {
-        sym: "S", name: "Enxofre", num: 16, mass: 32.06, group: 16, period: 3, cat: "non-metal",
-        q: [true, false, true, false, false, false, false, true, false, false, true, false, false, true, true, true, false, false, false, false, false, false, true, false, false, true, true, true, true, false],
-        fact: "O enxofre sólido cristalino é inodoro; o clássico cheiro desagradável de ovo podre pertence ao gás sulfeto de hidrogênio (H2S)."
-      },
-      {
-        sym: "Cl", name: "Cloro", num: 17, mass: 35.45, group: 17, period: 3, cat: "non-metal",
-        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, true, false, false, false, false, true, false, false, false, true, true, true, false],
-        fact: "O gás cloro é verde-amarelado e sufocante, mas quando combinado com sódio forma o sal de cozinha que consumimos todos os dias."
-      },
-      {
-        sym: "Ar", name: "Argônio", num: 18, mass: 39.948, group: 18, period: 3, cat: "noble",
-        q: [true, false, true, false, true, false, false, true, false, false, false, false, true, true, true, false, false, false, false, false, false, false, true, false, false, false, true, false, false, true],
-        fact: "Seu nome vem da palavra grega 'argos' (inativo/lento), descrevendo a sua quase nula reatividade química na natureza."
-      },
-      {
-        sym: "K", name: "Potássio", num: 19, mass: 39.098, group: 1, period: 4, cat: "alkali",
-        q: [true, true, false, false, false, false, true, false, false, false, true, false, false, false, true, true, false, true, false, false, true, false, true, false, false, true, true, true, true, false],
-        fact: "O símbolo 'K' remonta a 'Kalium'. O potássio é um íon vital para o cérebro transmitir pulsos elétricos entre os neurônios."
-      },
-      {
-        sym: "Ca", name: "Cálcio", num: 20, mass: 40.078, group: 2, period: 4, cat: "metal",
-        q: [true, true, false, false, false, false, true, false, false, false, true, false, false, false, true, true, false, true, false, true, true, true, false, false, false, false, true, true, true, true],
-        fact: "O cálcio é o quinto elemento mais abundante no corpo humano, essencial na ossatura, dentes e contração dos músculos cardíacos."
-      },
-      {
-        sym: "Fe", name: "Ferro", num: 26, mass: 55.845, group: 8, period: 4, cat: "transition",
-        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, true, true, true, true, true, true, true, false, false, true, true, false, false],
-        fact: "O Ferro é o estágio final da fusão de núcleos em estrelas massivas; após produzir ferro, a estrela colapsa em uma supernova!"
-      },
-      {
-        sym: "Cu", name: "Cobre", num: 29, mass: 63.546, group: 11, period: 4, cat: "transition",
-        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, false, false, true, false, true, true, true, false, false, true, false, false, false],
-        fact: "O cobre possui ação bactericida instantânea natural: microorganismos que entram em contato com superfícies de cobre morrem rápido."
-      },
-      {
-        sym: "Zn", name: "Zinco", num: 30, mass: 65.38, group: 12, period: 4, cat: "transition",
-        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, false, false, true, false, true, true, true, false, true, true, true, true, false],
-        fact: "O zinco é usado no aço galvanizado como metal de sacrifício, impedindo que pontes e veículos oxidem sob a chuva."
-      },
-      {
-        sym: "Br", name: "Bromo", num: 35, mass: 79.904, group: 17, period: 4, cat: "non-metal",
-        q: [true, false, true, false, false, false, false, false, true, true, false, true, false, true, true, true, false, true, false, false, false, false, true, false, false, false, true, false, false, false],
-        fact: "O Bromo é um dos únicos dois elementos líquidos em temperatura e pressão ambiente normais (o outro é o mercúrio)!"
-      },
-      {
-        sym: "Ag", name: "Prata", num: 47, mass: 107.868, group: 11, period: 5, cat: "transition",
-        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, false, false, false, false, true, false, false, true, true, false, true, true, false, false, false],
-        fact: "A prata ostenta a maior condutividade elétrica e térmica de qualquer metal conhecido na face da Terra."
-      },
-      {
-        sym: "I", name: "Iodo", num: 53, mass: 126.904, group: 17, period: 5, cat: "non-metal",
-        q: [true, false, true, false, false, false, false, false, true, true, true, false, false, false, true, true, false, false, false, false, false, false, true, false, false, false, true, true, true, true],
-        fact: "Sob leve aquecimento, cristais sólidos escuros de iodo sublimam diretamente em um deslumbrante vapor violeta escuro."
-      },
-      {
-        sym: "Ba", name: "Bário", num: 56, mass: 137.327, group: 2, period: 6, cat: "metal",
-        q: [true, true, false, false, false, false, true, false, true, true, true, false, false, false, true, false, false, true, false, true, false, false, true, false, false, false, true, false, false, true],
-        fact: "O sulfato de bário é ingerido como contraste em exames de raio-X do aparelho digestivo para realçar imagens diagnósticas."
-      },
-      {
-        sym: "Au", name: "Ouro", num: 79, mass: 196.967, group: 11, period: 6, cat: "transition",
-        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, false, false, false, false, true, false, false, true, true, false, false, true, true, false, false],
-        fact: "O ouro é tão maleável e dúctil que apenas 28 gramas podem ser esticadas em um fio condutor com mais de 80 quilômetros!"
-      },
-      {
-        sym: "Hg", name: "Mercúrio", num: 80, mass: 200.592, group: 12, period: 6, cat: "transition",
-        q: [true, true, false, false, false, true, false, false, true, true, false, true, false, true, true, false, false, false, false, true, false, false, true, false, false, true, true, false, false, true],
-        fact: "Conhecido outrora como 'prata viva', o mercúrio é o único metal puro líquido à temperatura ambiente."
-      },
-      {
-        sym: "Pb", name: "Chumbo", num: 82, mass: 207.2, group: 14, period: 6, cat: "metal",
-        q: [true, true, false, false, false, false, false, false, true, true, true, false, false, false, true, true, false, false, false, true, false, true, true, false, false, true, true, false, false, false],
-        fact: "O símbolo 'Pb' deriva de 'Plumbum', termo romano que deu origem às palavras modernas 'plumber' e 'encanamento'."
-      },
-      {
-        sym: "U", name: "Urânio", num: 92, mass: 238.029, group: 3, period: 7, cat: "metal",
-        q: [true, true, false, false, false, false, false, false, true, true, true, false, false, false, true, false, true, true, false, true, false, false, false, false, true, false, true, false, false, false],
-        fact: "Um único quilograma de Urânio-235 pode produzir energia equivalente à combustão de mais de 20 milhões de quilos de carvão!"
-      },
-      {
-        sym: "Kr", name: "Criptônio", num: 36, mass: 83.798, group: 18, period: 4, cat: "noble",
-        q: [true, false, true, false, true, false, false, false, true, true, false, false, true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, true],
-        fact: "Durante anos, o metro foi definido cientificamente como 1.650.763,73 comprimentos de onda da luz emitida pelo Criptônio-86."
-      },
-      {
-        sym: "B",
-        name: "Boro",
-        num: 5,
-        mass: 10.81,
-        group: 13,
+        sym: "Li",
+        name: "Lítio",
+        num: 3,
+        mass: 6.94,
+        group: 1,
         period: 2,
-        cat: "semimetal",
-        fact: "O boro é um semimetal essencial para vidros resistentes a choques térmicos (como o Pyrex) e na agricultura como micronutriente.",
-        q: [true, false, false, true, false, false, false, true, false, false, true, false, false, false, true, true, false, false, false, true, false, true, true, true, true, false, true, false, true, false]
+        cat: "alkali",
+        fact: "O Lítio é o metal mais leve da tabela periódica, capaz de flutuar tanto em água quanto em óleo mineral!",
+        q: [true, true, false, false, false, false, true, true, false, false, true, false, false, false, true, true, false, true, false, true, false, false, true, false, false, true, true, false, false, false]
       },
       {
         sym: "Be",
@@ -3290,15 +3162,202 @@
         q: [true, true, false, false, false, false, true, true, false, false, true, false, false, false, false, false, false, false, false, true, false, false, true, false, true, false, true, false, false, false]
       },
       {
-        sym: "Co",
-        name: "Cobalto",
-        num: 27,
-        mass: 58.933,
-        group: 9,
+        sym: "B",
+        name: "Boro",
+        num: 5,
+        mass: 10.81,
+        group: 13,
+        period: 2,
+        cat: "semimetal",
+        fact: "O boro é um semimetal essencial para vidros resistentes a choques térmicos (como o Pyrex) e na agricultura como micronutriente.",
+        q: [true, false, false, true, false, false, false, true, false, false, true, false, false, false, true, true, false, false, false, true, false, true, true, true, true, false, true, false, true, false]
+      },
+      {
+        sym: "C",
+        name: "Carbono",
+        num: 6,
+        mass: 12.011,
+        group: 14,
+        period: 2,
+        cat: "non-metal",
+        fact: "Toda a química da vida orgânica na Terra é baseada no Carbono, elemento formador tanto do grafite macio quanto do diamante duro.",
+        q: [true, false, true, false, false, false, false, true, false, false, true, false, false, true, true, true, false, false, false, false, false, true, true, true, true, true, true, true, true, false]
+      },
+      {
+        sym: "N",
+        name: "Nitrogênio",
+        num: 7,
+        mass: 14.007,
+        group: 15,
+        period: 2,
+        cat: "non-metal",
+        fact: "O gás Nitrogênio compõe aproximadamente 78% do ar que respiramos, diluindo o oxigênio e estabilizando a atmosfera.",
+        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, false, false, false, false, false, true, true, false, false, true, true, true, true]
+      },
+      {
+        sym: "O",
+        name: "Oxigênio",
+        num: 8,
+        mass: 15.999,
+        group: 16,
+        period: 2,
+        cat: "non-metal",
+        fact: "Em estado líquido ou sólido, o oxigênio possui uma marcante tonalidade azul clara e é atraído por campos magnéticos.",
+        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, false, true, false, true, false, true, false, true, false, true, true, false, false]
+      },
+      {
+        sym: "F",
+        name: "Flúor",
+        num: 9,
+        mass: 18.998,
+        group: 17,
+        period: 2,
+        cat: "non-metal",
+        fact: "O Flúor é o elemento químico mais reativo e mais eletronegativo de toda a tabela periódica, atacando até mesmo o vidro!",
+        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, true, false, false, false, false, true, true, false, false, true, false, false, false]
+      },
+      {
+        sym: "Ne",
+        name: "Neônio",
+        num: 10,
+        mass: 20.18,
+        group: 18,
+        period: 2,
+        cat: "noble",
+        fact: "A luminescência elétrica original do gás Neônio é puramente vermelho-alaranjada; outras cores em luminosos usam gases distintos.",
+        q: [true, false, true, false, true, false, false, true, false, false, false, false, true, true, false, false, false, false, false, false, false, false, true, false, false, false, false, false, false, true]
+      },
+      {
+        sym: "Na",
+        name: "Sódio",
+        num: 11,
+        mass: 22.99,
+        group: 1,
+        period: 3,
+        cat: "alkali",
+        fact: "O símbolo 'Na' vem do latim 'Natrium'. Embora reaja explosivamente com água, é indispensável na dieta diária no sal (NaCl).",
+        q: [true, true, false, false, false, false, true, true, false, false, true, false, false, false, true, true, false, true, false, false, true, false, true, false, false, true, true, true, true, true]
+      },
+      {
+        sym: "Mg",
+        name: "Magnésio",
+        num: 12,
+        mass: 24.305,
+        group: 2,
+        period: 3,
+        cat: "metal",
+        fact: "No coração de cada molécula de clorofila nas plantas há um átomo de magnésio, tornando a fotossíntese do planeta possível!",
+        q: [true, true, false, false, false, false, true, true, false, false, true, false, false, false, true, true, false, true, false, true, true, true, true, true, false, true, true, true, true, true]
+      },
+      {
+        sym: "Al",
+        name: "Alumínio",
+        num: 13,
+        mass: 26.982,
+        group: 13,
+        period: 3,
+        cat: "metal",
+        fact: "No século XIX, o alumínio puro era considerado mais nobre e custoso que o ouro pela tremenda dificuldade de refinamento na época.",
+        q: [true, true, false, false, false, false, false, true, false, false, true, false, false, false, true, false, false, false, false, true, true, true, true, true, false, false, true, false, false, false]
+      },
+      {
+        sym: "Si",
+        name: "Silício",
+        num: 14,
+        mass: 28.085,
+        group: 14,
+        period: 3,
+        cat: "semimetal",
+        fact: "O silício é a espinha dorsal de chips de computador e células solares, tendo batizado o famoso 'Vale do Silício' na Califórnia.",
+        q: [true, false, false, true, false, false, false, true, false, false, true, false, false, false, true, true, false, false, false, false, true, true, true, true, false, true, true, false, false, false]
+      },
+      {
+        sym: "P",
+        name: "Fósforo",
+        num: 15,
+        mass: 30.974,
+        group: 15,
+        period: 3,
+        cat: "non-metal",
+        fact: "Descoberto em 1669 por um alquimista a partir de urina concentrada, o fósforo branco brilha no escuro em contato com o ar.",
+        q: [true, false, true, false, false, false, false, true, false, false, true, false, false, false, true, true, false, false, false, false, false, false, true, true, false, true, true, true, true, false]
+      },
+      {
+        sym: "S",
+        name: "Enxofre",
+        num: 16,
+        mass: 32.06,
+        group: 16,
+        period: 3,
+        cat: "non-metal",
+        fact: "O enxofre sólido cristalino é inodoro; o clássico cheiro desagradável de ovo podre pertence ao gás sulfeto de hidrogênio (H2S).",
+        q: [true, false, true, false, false, false, false, true, false, false, true, false, false, true, true, true, false, false, false, false, false, false, true, false, false, true, true, true, true, false]
+      },
+      {
+        sym: "Cl",
+        name: "Cloro",
+        num: 17,
+        mass: 35.45,
+        group: 17,
+        period: 3,
+        cat: "non-metal",
+        fact: "O gás cloro é verde-amarelado e sufocante, mas quando combinado com sódio forma o sal de cozinha que consumimos todos os dias.",
+        q: [true, false, true, false, false, false, false, true, false, false, false, false, true, true, true, true, false, true, false, false, false, false, true, false, false, false, true, true, true, false]
+      },
+      {
+        sym: "K",
+        name: "Potássio",
+        num: 19,
+        mass: 39.098,
+        group: 1,
+        period: 4,
+        cat: "alkali",
+        fact: "O símbolo 'K' remonta a 'Kalium'. O potássio é um íon vital para o cérebro transmitir pulsos elétricos entre os neurônios.",
+        q: [true, true, false, false, false, false, true, false, false, false, true, false, false, false, true, true, false, true, false, false, true, false, true, false, false, true, true, true, true, false]
+      },
+      {
+        sym: "Ar",
+        name: "Argônio",
+        num: 18,
+        mass: 39.948,
+        group: 18,
+        period: 3,
+        cat: "noble",
+        fact: "Seu nome vem da palavra grega 'argos' (inativo/lento), descrevendo a sua quase nula reatividade química na natureza.",
+        q: [true, false, true, false, true, false, false, true, false, false, false, false, true, true, true, false, false, false, false, false, false, false, true, false, false, false, true, false, false, true]
+      },
+      {
+        sym: "Ca",
+        name: "Cálcio",
+        num: 20,
+        mass: 40.078,
+        group: 2,
+        period: 4,
+        cat: "metal",
+        fact: "O cálcio é o quinto elemento mais abundante no corpo humano, essencial na ossatura, dentes e contração dos músculos cardíacos.",
+        q: [true, true, false, false, false, false, true, false, false, false, true, false, false, false, true, true, false, true, false, true, true, true, false, false, false, false, true, true, true, true]
+      },
+      {
+        sym: "Mn",
+        name: "Manganês",
+        num: 25,
+        mass: 54.938,
+        group: 7,
         period: 4,
         cat: "transition",
-        fact: "O cobalto é essencial para a vida na molécula de vitamina B12 e um dos metais mais estratégicos do mundo nas baterias de íons de lítio.",
-        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, false, true, false, false, true, true, false, true, true, true, true, true, true, false, false, false]
+        fact: "O manganês é o desoxidante mestre do aço e o ingrediente essencial nas clássicas pilhas alcalinas secas (dióxido de manganês).",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, false, true, true, true, true, true, true, true, true, true, true, true, false]
+      },
+      {
+        sym: "Fe",
+        name: "Ferro",
+        num: 26,
+        mass: 55.845,
+        group: 8,
+        period: 4,
+        cat: "transition",
+        fact: "O Ferro é o estágio final da fusão de núcleos em estrelas massivas; após produzir ferro, a estrela colapsa em uma supernova!",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, true, true, true, true, true, true, true, false, false, true, true, false, false]
       },
       {
         sym: "Ni",
@@ -3312,6 +3371,72 @@
         q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, false, true, false, false, true, true, false, true, true, true, true, true, true, false, false, false]
       },
       {
+        sym: "Co",
+        name: "Cobalto",
+        num: 27,
+        mass: 58.933,
+        group: 9,
+        period: 4,
+        cat: "transition",
+        fact: "O cobalto é essencial para a vida na molécula de vitamina B12 e um dos metais mais estratégicos do mundo nas baterias de íons de lítio.",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, false, true, false, false, true, true, false, true, true, true, true, true, true, false, false, false]
+      },
+      {
+        sym: "Cu",
+        name: "Cobre",
+        num: 29,
+        mass: 63.546,
+        group: 11,
+        period: 4,
+        cat: "transition",
+        fact: "O cobre possui ação bactericida instantânea natural: microorganismos que entram em contato com superfícies de cobre morrem rápido.",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, false, false, true, false, true, true, true, false, false, true, false, false, false]
+      },
+      {
+        sym: "Zn",
+        name: "Zinco",
+        num: 30,
+        mass: 65.38,
+        group: 12,
+        period: 4,
+        cat: "transition",
+        fact: "O zinco é usado no aço galvanizado como metal de sacrifício, impedindo que pontes e veículos oxidem sob a chuva.",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, false, false, true, false, true, true, true, false, true, true, true, true, false]
+      },
+      {
+        sym: "Br",
+        name: "Bromo",
+        num: 35,
+        mass: 79.904,
+        group: 17,
+        period: 4,
+        cat: "non-metal",
+        fact: "O Bromo é um dos únicos dois elementos líquidos em temperatura e pressão ambiente normais (o outro é o mercúrio)!",
+        q: [true, false, true, false, false, false, false, false, true, true, false, true, false, true, true, true, false, true, false, false, false, false, true, false, false, false, true, false, false, false]
+      },
+      {
+        sym: "Kr",
+        name: "Criptônio",
+        num: 36,
+        mass: 83.798,
+        group: 18,
+        period: 4,
+        cat: "noble",
+        fact: "Durante anos, o metro foi definido cientificamente como 1.650.763,73 comprimentos de onda da luz emitida pelo Criptônio-86.",
+        q: [true, false, true, false, true, false, false, false, true, true, false, false, true, true, false, false, false, false, false, false, false, false, true, false, false, false, true, false, false, true]
+      },
+      {
+        sym: "Ag",
+        name: "Prata",
+        num: 47,
+        mass: 107.868,
+        group: 11,
+        period: 5,
+        cat: "transition",
+        fact: "A prata ostenta a maior condutividade elétrica e térmica de qualquer metal conhecido na face da Terra.",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, false, false, false, false, true, false, false, true, true, false, true, true, false, false, false]
+      },
+      {
         sym: "Sn",
         name: "Estanho",
         num: 50,
@@ -3323,26 +3448,15 @@
         q: [true, true, false, false, false, false, false, false, true, true, true, false, false, false, false, false, false, false, false, true, false, true, true, true, false, false, true, true, false, false]
       },
       {
-        sym: "Pt",
-        name: "Platina",
-        num: 78,
-        mass: 195.08,
-        group: 10,
-        period: 6,
-        cat: "transition",
-        fact: "A platina é um metal nobre e denso que purifica gases nocivos em catalisadores de automóveis e dá origem à quimioterapia com cisplatina.",
-        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, false, false, false, false, false, true, false, false, true, true, true, false, true, false, true, false]
-      },
-      {
-        sym: "W",
-        name: "Tungstênio",
-        num: 74,
-        mass: 183.84,
-        group: 6,
-        period: 6,
-        cat: "transition",
-        fact: "O tungstênio possui o mais alto ponto de fusão de todos os metais (3.422 °C), sendo a alma dos filamentos de lâmpadas incandescentes.",
-        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, false, false, false, false, false, true, false, true, true, false, true, false, true, false, false, true]
+        sym: "I",
+        name: "Iodo",
+        num: 53,
+        mass: 126.904,
+        group: 17,
+        period: 5,
+        cat: "non-metal",
+        fact: "Sob leve aquecimento, cristais sólidos escuros de iodo sublimam diretamente em um deslumbrante vapor violeta escuro.",
+        q: [true, false, true, false, false, false, false, false, true, true, true, false, false, false, true, true, false, false, false, false, false, false, true, false, false, false, true, true, true, true]
       },
       {
         sym: "Xe",
@@ -3367,15 +3481,81 @@
         q: [true, true, false, false, false, false, true, false, true, true, true, false, false, false, false, false, false, true, false, true, false, false, true, false, true, false, true, false, false, true]
       },
       {
-        sym: "Mn",
-        name: "Manganês",
-        num: 25,
-        mass: 54.938,
-        group: 7,
-        period: 4,
+        sym: "Ba",
+        name: "Bário",
+        num: 56,
+        mass: 137.327,
+        group: 2,
+        period: 6,
+        cat: "metal",
+        fact: "O sulfato de bário é ingerido como contraste em exames de raio-X do aparelho digestivo para realçar imagens diagnósticas.",
+        q: [true, true, false, false, false, false, true, false, true, true, true, false, false, false, true, false, false, true, false, true, false, false, true, false, false, false, true, false, false, true]
+      },
+      {
+        sym: "W",
+        name: "Tungstênio",
+        num: 74,
+        mass: 183.84,
+        group: 6,
+        period: 6,
         cat: "transition",
-        fact: "O manganês é o desoxidante mestre do aço e o ingrediente essencial nas clássicas pilhas alcalinas secas (dióxido de manganês).",
-        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, true, false, false, true, true, true, true, true, true, true, true, true, true, true, false]
+        fact: "O tungstênio possui o mais alto ponto de fusão de todos os metais (3.422 °C), sendo a alma dos filamentos de lâmpadas incandescentes.",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, false, false, false, false, false, true, false, true, true, false, true, false, true, false, false, true]
+      },
+      {
+        sym: "Pt",
+        name: "Platina",
+        num: 78,
+        mass: 195.08,
+        group: 10,
+        period: 6,
+        cat: "transition",
+        fact: "A platina é um metal nobre e denso que purifica gases nocivos em catalisadores de automóveis e dá origem à quimioterapia com cisplatina.",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, false, false, false, false, false, true, false, false, true, true, true, false, true, false, true, false]
+      },
+      {
+        sym: "Au",
+        name: "Ouro",
+        num: 79,
+        mass: 196.967,
+        group: 11,
+        period: 6,
+        cat: "transition",
+        fact: "O ouro é tão maleável e dúctil que apenas 28 gramas podem ser esticadas em um fio condutor com mais de 80 quilômetros!",
+        q: [true, true, false, false, false, true, false, false, true, true, true, false, false, false, true, false, false, false, false, true, false, false, true, true, false, false, true, true, false, false]
+      },
+      {
+        sym: "Hg",
+        name: "Mercúrio",
+        num: 80,
+        mass: 200.592,
+        group: 12,
+        period: 6,
+        cat: "transition",
+        fact: "Conhecido outrora como 'prata viva', o mercúrio é o único metal puro líquido à temperatura ambiente.",
+        q: [true, true, false, false, false, true, false, false, true, true, false, true, false, true, true, false, false, false, false, true, false, false, true, false, false, true, true, false, false, true]
+      },
+      {
+        sym: "Pb",
+        name: "Chumbo",
+        num: 82,
+        mass: 207.2,
+        group: 14,
+        period: 6,
+        cat: "metal",
+        fact: "O símbolo 'Pb' deriva de 'Plumbum', termo romano que deu origem às palavras modernas 'plumber' e 'encanamento'.",
+        q: [true, true, false, false, false, false, false, false, true, true, true, false, false, false, true, true, false, false, false, true, false, true, true, false, false, true, true, false, false, false]
+      },
+      {
+        sym: "U",
+        name: "Urânio",
+        num: 92,
+        mass: 238.029,
+        group: 3,
+        period: 7,
+        cat: "metal",
+        fact: "Um único quilograma de Urânio-235 pode produzir energia equivalente à combustão de mais de 20 milhões de quilos de carvão!",
+        q: [true, true, false, false, false, false, false, false, true, true, true, false, false, false, true, false, true, true, false, true, false, false, false, false, true, false, true, false, false, false]
       }
     ];
 
