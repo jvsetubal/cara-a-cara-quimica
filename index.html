@@ -786,6 +786,137 @@
       box-shadow: inset 0 0 16px rgba(0,0,0,0.5);
     }
 
+    /* Animação Contínua (Marquee) para Usos dos Elementos */
+    .uses-marquee-wrapper {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+      white-space: nowrap;
+      padding: 2px 0;
+    }
+    .uses-marquee-track {
+      display: inline-flex;
+      gap: 8px;
+      width: max-content;
+      animation: marqueeScroll 18s linear infinite;
+    }
+    .uses-marquee-wrapper:hover .uses-marquee-track {
+      animation-play-state: paused;
+    }
+    @keyframes marqueeScroll {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+    .use-tag-pill {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      color: var(--accent-cyan);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Marquee no verso da carta no tabuleiro */
+    .card-back-ticker-wrapper {
+      overflow: hidden;
+      width: 100%;
+      white-space: nowrap;
+      mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+      -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+    }
+    .card-back-ticker-track {
+      display: inline-flex;
+      gap: 10px;
+      width: max-content;
+      animation: marqueeScroll 14s linear infinite;
+    }
+
+    /* Estilos das Conquistas no Caderno de Descobertas */
+    .achievements-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .achievement-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .achievement-card.unlocked {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(56, 189, 248, 0.1));
+      border-color: rgba(34, 197, 94, 0.5);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.15);
+    }
+    .achievement-icon {
+      font-size: 24px;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .achievement-card:not(.unlocked) .achievement-icon {
+      filter: grayscale(1) opacity(0.4);
+    }
+    .achievement-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .achievement-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 2px;
+    }
+    .achievement-card.unlocked .achievement-title {
+      color: #4ade80;
+    }
+    .achievement-desc {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      line-height: 1.25;
+    }
+
+    /* Toast de Conquista Desbloqueada */
+    .achievement-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid #4ade80;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(74, 222, 128, 0.3);
+      border-radius: 12px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 10000;
+      animation: toastSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes toastSlideIn {
+      from { transform: translateY(100px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
     /* Dados resumidos no verso do cartão */
     .card-back-header {
       display: flex;
@@ -2928,6 +3059,19 @@
         </div>
       </div>
 
+      <!-- Seção de Conquistas Desbloqueáveis -->
+      <div style="margin-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <div style="font-size: 13px; font-weight: 800; color: #f1f5f9; display: flex; align-items: center; gap: 6px;">
+            <span>🏆</span> Conquistas da Carreira Científica
+          </div>
+          <span id="achievementsCountBadge" style="font-size: 11px; color: #4ade80; font-weight: 700;">0/7 Desbloqueadas</span>
+        </div>
+        <div class="achievements-grid" id="achievementsListGrid">
+          <!-- Preenchido via JS -->
+        </div>
+      </div>
+
       <!-- Histórico recente de partidas -->
       <div>
         <div style="font-size: 13px; font-weight: 800; margin-bottom: 8px; color: #94a3b8; display: flex; align-items: center; gap: 6px;">
@@ -3733,6 +3877,117 @@
       } catch (e) {}
     }
 
+    
+    /* ==========================================================================
+       SISTEMA DE CONQUISTAS CIENTÍFICAS
+       ========================================================================== */
+    const STORAGE_KEY_ACHIEVEMENTS = "cara_quimica_achievements_v1";
+
+    const ACHIEVEMENTS_LIST = [
+      {
+        id: "first_win_ai",
+        title: "Mestre dos Algoritmos",
+        desc: "Vença uma partida contra o Computador (IA)",
+        icon: "🤖"
+      },
+      {
+        id: "first_win_online",
+        title: "Cientista Global",
+        desc: "Vença uma partida multijogador online",
+        icon: "🌐"
+      },
+      {
+        id: "elements_10",
+        title: "Curioso da Química",
+        desc: "Descubra 10 elementos químicos diferentes",
+        icon: "🔬"
+      },
+      {
+        id: "elements_20",
+        title: "Colecionador Atômico",
+        desc: "Descubra 20 elementos químicos no seu caderno",
+        icon: "🧪"
+      },
+      {
+        id: "elements_40",
+        title: "Químico Supremo",
+        desc: "Complete o álbum descobrindo todos os 40 elementos",
+        icon: "👑"
+      },
+      {
+        id: "fast_victory",
+        title: "Dedução Relâmpago",
+        desc: "Vença uma partida em 5 rodadas ou menos",
+        icon: "⚡"
+      },
+      {
+        id: "master_guesser",
+        title: "Tiro Certeiro",
+        desc: "Acerte o palpite final sem errar nenhuma dedução",
+        icon: "🎯"
+      }
+    ];
+
+    function getUnlockedAchievements() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_ACHIEVEMENTS);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function unlockAchievement(id) {
+      try {
+        const unlocked = getUnlockedAchievements();
+        if (!unlocked.includes(id)) {
+          unlocked.push(id);
+          localStorage.setItem(STORAGE_KEY_ACHIEVEMENTS, JSON.stringify(unlocked));
+          const ach = ACHIEVEMENTS_LIST.find(a => a.id === id);
+          if (ach) {
+            showAchievementToast(ach);
+          }
+        }
+      } catch (e) {}
+    }
+
+    function showAchievementToast(ach) {
+      const toast = document.createElement("div");
+      toast.className = "achievement-toast";
+      toast.innerHTML = `
+        <div style="font-size: 28px;">${ach.icon}</div>
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; color: #4ade80; font-weight: 800; letter-spacing: 0.5px;">Conquista Desbloqueada!</div>
+          <div style="font-size: 13px; font-weight: 700; color: #fff;">${ach.title}</div>
+          <div style="font-size: 11px; color: #94a3b8;">${ach.desc}</div>
+        </div>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transition = "opacity 0.4s ease, transform 0.4s ease";
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(20px)";
+        setTimeout(() => toast.remove(), 400);
+      }, 4500);
+    }
+
+    function getAllElementUsages(el) {
+      const allDefs = [
+        { label: "🏗️ Construção Civil", active: !!el.q[21] },
+        { label: "🔋 Baterias e Pilhas", active: !!el.q[25] },
+        { label: "🍎 Alimentos e Bebidas", active: !!el.q[27] },
+        { label: "📦 Embalagens / Utensílios", active: !!el.q[23] },
+        { label: "🚀 Combustível / Energia", active: !!el.q[24] },
+        { label: "💊 Medicina e Farmácia", active: !!el.q[26] },
+        { label: "💡 Luzes e Lâmpadas", active: !!el.q[29] },
+        { label: "💻 Eletrônicos e Chips", active: !!el.q[22] },
+        { label: "🌾 Fertilizantes / Sais", active: !!el.q[28] },
+        { label: "🧲 Ímãs e Motores", active: !!el.q[18] },
+        { label: "🧪 Pesquisa & Síntese", active: true }
+      ];
+      return allDefs.filter(d => d.active).map(d => d.label);
+    }
+
     function registerMatchFinished(isWinner, myElementSym, oppElementSym, opponentName) {
       try {
         registerElementSeen(myElementSym);
@@ -3744,13 +3999,32 @@
           stats.won = (stats.won || 0) + 1;
         }
 
-        const matchRecord = {
+                const matchRecord = {
           date: Date.now(),
           won: !!isWinner,
           myElement: myElementSym,
           oppElement: oppElementSym,
-          opponent: opponentName || "Computador"
+          opponent: opponentName || (gameMode === "online" ? "Adversário Online" : "Computador")
         };
+
+        // Verificação de conquistas por vitórias
+        if (isWinner) {
+          if (gameMode === "local") {
+            unlockAchievement("first_win_ai");
+          } else if (gameMode === "online") {
+            unlockAchievement("first_win_online");
+          }
+          if (currentRoundNumber <= 5) {
+            unlockAchievement("fast_victory");
+          }
+          unlockAchievement("master_guesser");
+        }
+
+        // Verificação de conquistas por coleção
+        const seenCount = seen.size;
+        if (seenCount >= 10) unlockAchievement("elements_10");
+        if (seenCount >= 20) unlockAchievement("elements_20");
+        if (seenCount >= 40) unlockAchievement("elements_40");
 
         if (!stats.matches) stats.matches = [];
         stats.matches.unshift(matchRecord);
@@ -3865,6 +4139,29 @@
       // Exibe medalha de álbum completo
       const albumBadge = document.getElementById('albumCompleteBadge');
       if (albumBadge) albumBadge.style.display = seen.size >= 40 ? 'flex' : 'none';
+
+      // Renderiza conquistas
+      const unlockedAch = getUnlockedAchievements();
+      const achBadge = document.getElementById("achievementsCountBadge");
+      if (achBadge) achBadge.textContent = `${unlockedAch.length}/${ACHIEVEMENTS_LIST.length} Desbloqueadas`;
+
+      const achList = document.getElementById("achievementsListGrid");
+      if (achList) {
+        achList.innerHTML = "";
+        ACHIEVEMENTS_LIST.forEach(ach => {
+          const isUnlocked = unlockedAch.includes(ach.id);
+          const card = document.createElement("div");
+          card.className = "achievement-card" + (isUnlocked ? " unlocked" : "");
+          card.innerHTML = `
+            <div class="achievement-icon">${ach.icon}</div>
+            <div class="achievement-info">
+              <div class="achievement-title">${ach.title} ${isUnlocked ? "✅" : "🔒"}</div>
+              <div class="achievement-desc">${ach.desc}</div>
+            </div>
+          `;
+          achList.appendChild(card);
+        });
+      }
 
       // Renderiza últimas partidas
       const list = document.getElementById("matchHistoryList");
@@ -4223,41 +4520,34 @@
       const water = el.q[17] ? "💥 Sim (Reage vigorosamente)" : "🚫 Não (Não reage espontaneamente)";
       document.getElementById("elDataReactsWater").textContent = water;
 
-      // 5. Áreas de uso
+      // 5. Áreas de uso com todos os usos e movimento contínuo (Marquee)
       const usagesContainer = document.getElementById("elDataUsages");
       usagesContainer.innerHTML = "";
 
-      const areas = [
-        { label: "🏗️ Construção Civil", active: !!el.q[21] },
-        { label: "🔋 Baterias e Pilhas", active: !!el.q[25] },
-        { label: "🍎 Indústria Alimentícia", active: !!el.q[27] },
-        { label: "📦 Embalagens / Utensílios", active: !!el.q[23] },
-        { label: "🚀 Combustível / Energia", active: !!el.q[24] },
-        { label: "💊 Medicina e Farmácia", active: !!el.q[26] },
-        { label: "💡 Luzes e Lâmpadas", active: !!el.q[29] },
-        { label: "💻 Eletrônicos e Chips", active: !!el.q[22] },
-        { label: "🌾 Fertilizantes / Sal", active: !!el.q[28] }
-      ];
+      const usagesList = getAllElementUsages(el);
 
-      let anyUsage = false;
-      areas.forEach(a => {
-        if (a.active) {
-          anyUsage = true;
-          const tag = document.createElement("span");
-          tag.style.background = "rgba(56, 189, 248, 0.15)";
-          tag.style.border = "1px solid var(--accent-cyan)";
-          tag.style.color = "var(--accent-cyan)";
-          tag.style.padding = "4px 8px";
-          tag.style.borderRadius = "6px";
-          tag.style.fontSize = "11.5px";
-          tag.style.fontWeight = "600";
-          tag.textContent = a.label;
-          usagesContainer.appendChild(tag);
-        }
-      });
-
-      if (!anyUsage) {
+      if (usagesList.length === 0) {
         usagesContainer.innerHTML = '<span style="font-size: 12px; color: var(--text-muted);">Aplicações restritas a laboratório ou pesquisa científica.</span>';
+      } else {
+        // Cria estrutura de marquee com duplicação para loop contínuo perfeito
+        const marqueeWrapper = document.createElement("div");
+        marqueeWrapper.className = "uses-marquee-wrapper";
+        marqueeWrapper.title = "Passe o mouse para pausar a rotação";
+
+        const marqueeTrack = document.createElement("div");
+        marqueeTrack.className = "uses-marquee-track";
+
+        // Duplica a lista para o scroll sem emendas
+        const displayList = usagesList.concat(usagesList);
+        displayList.forEach(u => {
+          const pill = document.createElement("span");
+          pill.className = "use-tag-pill";
+          pill.textContent = u;
+          marqueeTrack.appendChild(pill);
+        });
+
+        marqueeWrapper.appendChild(marqueeTrack);
+        usagesContainer.appendChild(marqueeWrapper);
       }
 
       // Curiosidade
@@ -4932,7 +5222,9 @@
       const isWinner = (winnerRole === myRole);
       const winningElement = (winnerRole === "player1" ? p2Obj : p1Obj);
 
-      showVictoryScreen(isWinner, p1Obj, p2Obj, winningElement, (winnerRole === "player1" ? "Jogador 1" : "Jogador 2"));
+      const oppRole = (myRole === "player1" ? "player2" : "player1");
+      const oppNick = (data[oppRole] && data[oppRole].name) ? data[oppRole].name : (oppRole === "player1" ? "Jogador 1" : "Jogador 2");
+      showVictoryScreen(isWinner, p1Obj, p2Obj, winningElement, (winnerRole === "player1" ? "Jogador 1" : "Jogador 2"), oppNick);
     }
 
     /* ==========================================================================
@@ -4976,16 +5268,9 @@
         const waterStr = el.q[17] ? "💥 Reage c/ água" : "🚫 Não reage";
         const radioStr = el.q[16] ? "☢️ Radioativo" : "🛡️ Estável";
 
-        let usageArea = "Laboratório";
-        if (el.q[21]) usageArea = "🏗️ Construção civil";
-        else if (el.q[25]) usageArea = "🔋 Baterias e pilhas";
-        else if (el.q[27]) usageArea = "🍎 Alimentos / Bebidas";
-        else if (el.q[23]) usageArea = "📦 Embalagens / Cozinha";
-        else if (el.q[24]) usageArea = "🚀 Combustível / Energia";
-        else if (el.q[26]) usageArea = "💊 Farmácia / Medicina";
-        else if (el.q[29]) usageArea = "💡 Luzes e lâmpadas";
-        else if (el.q[22]) usageArea = "💻 Tecnologia / Chips";
-        else if (el.q[28]) usageArea = "🌾 Fertilizante / Sal";
+        const usagesAll = getAllElementUsages(el);
+        const usagesTickerText = (usagesAll.concat(usagesAll)).map(u => '<span>' + u + '</span>').join('');
+        const usagesFullTooltip = usagesAll.join(" • ");
 
         card.innerHTML = `
           <button type="button" class="btn-mobile-flip" title="Girar cartão" onclick="event.stopPropagation(); toggleCardFlip('${el.sym}');">🔄</button>
@@ -5013,7 +5298,14 @@
                 <div class="card-back-item">${stateStr}</div>
                 <div class="card-back-item">${radioStr}</div>
                 <div class="card-back-item">${waterStr}</div>
-                <div class="card-back-item" title="${usageArea}"><strong>Uso:</strong> ${usageArea}</div>
+                <div class="card-back-item" style="overflow: hidden;" title="Usos: ${usagesFullTooltip}">
+                  <strong>Uso:</strong>
+                  <div class="card-back-ticker-wrapper">
+                    <div class="card-back-ticker-track">
+                      ${usagesTickerText}
+                    </div>
+                  </div>
+                </div>
               </div>
               <div class="card-back-footer">
                 P:${el.period} | G:${el.group} | ${el.mass.toFixed(1)}u
@@ -6074,7 +6366,7 @@
       }
     }
 
-    function showVictoryScreen(isWinner, p1El, p2El, winningElement, winnerName) {
+    function showVictoryScreen(isWinner, p1El, p2El, winningElement, winnerName, opponentNickName) {
       gameOver = true;
       hideBlockOverlay();
       hideBanner();
@@ -6108,7 +6400,8 @@
 
       document.getElementById("revealFact").textContent = winningElement.fact || "Elemento fascinante da tabela periódica!";
 
-      registerMatchFinished(isWinner, mySecret ? mySecret.sym : null, opponentSecret ? opponentSecret.sym : (p2El ? p2El.sym : null), winnerName);
+      const actualOpponent = (gameMode === "online" ? (opponentNickName || "Adversário Online") : "Computador");
+      registerMatchFinished(isWinner, mySecret ? mySecret.sym : null, opponentSecret ? opponentSecret.sym : (p2El ? p2El.sym : null), actualOpponent);
       modal.classList.remove("hidden");
     }
   </script>
