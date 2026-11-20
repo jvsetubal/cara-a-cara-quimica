@@ -716,26 +716,150 @@
     }
 
     .element-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 12px 10px;
-      display: flex;
-      flex-direction: column;
+      background: transparent;
+      border: none;
+      padding: 0;
       position: relative;
       cursor: pointer;
-      transition: all 0.2s ease;
-      overflow: hidden;
-      min-height: 120px;
+      min-height: 126px;
+      perspective: 800px;
+      user-select: none;
     }
 
-    .element-card:hover {
-      transform: translateY(-2px);
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 126px;
+      text-align: left;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+      border-radius: 10px;
+    }
+
+    /* Flip no desktop ao passar o mouse */
+    @media (hover: hover) and (pointer: fine) {
+      .element-card:hover .card-inner {
+        transform: rotateY(180deg);
+      }
+    }
+
+    /* Flip ativo via clique/toque (mobile ou desktop) */
+    .element-card.is-flipped .card-inner {
+      transform: rotateY(180deg) !important;
+    }
+
+    .card-front, .card-back {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      padding: 10px 8px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    .card-front {
+      z-index: 2;
+      transform: rotateY(0deg);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .element-card:hover .card-front {
       border-color: #58a6ff;
       box-shadow: 0 4px 14px rgba(0,0,0,0.4);
     }
 
-    .element-card.guess-mode {
+    .card-back {
+      transform: rotateY(180deg);
+      background: linear-gradient(145deg, #101827 0%, #0a0e17 100%);
+      border-color: rgba(56, 189, 248, 0.4);
+      justify-content: space-between;
+      box-shadow: inset 0 0 16px rgba(0,0,0,0.5);
+    }
+
+    /* Dados no verso do cartão */
+    .card-back-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding-bottom: 3px;
+      margin-bottom: 3px;
+    }
+    .card-back-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+    }
+    .card-back-meta {
+      font-size: 9.5px;
+      color: var(--text-muted);
+    }
+    .card-back-list {
+      font-size: 9px;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      justify-content: center;
+    }
+    .card-back-item {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-back-item strong {
+      color: #94a3b8;
+    }
+    .card-back-footer {
+      font-size: 8.5px;
+      color: var(--accent-cyan);
+      text-align: center;
+      padding-top: 2px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-weight: 600;
+    }
+
+    /* Botão de flip no canto superior para mobile */
+    .btn-mobile-flip {
+      display: none;
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(56, 189, 248, 0.25);
+      border: 1px solid var(--accent-cyan);
+      color: #fff;
+      font-size: 10px;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .btn-mobile-flip {
+        display: flex;
+      }
+    }
+
+    .element-card.guess-mode .card-front,
+    .element-card.guess-mode .card-back {
       border-color: var(--accent-amber);
       animation: guessPulse 1.2s infinite alternate;
     }
@@ -748,6 +872,9 @@
     .element-card.eliminated {
       opacity: var(--eliminated-opacity);
       filter: grayscale(1) brightness(0.6);
+    }
+
+    .element-card.eliminated .card-front {
       border-color: #1e293b;
     }
 
@@ -4387,16 +4514,18 @@
         renderHistoryFromLogs(data.log);
       }
 
-      // TRATAMENTO DA PERGUNTA PENDENTE ONLINE (OS DOIS RESPONDEM COM CORREÇÃO)
+      // TRATAMENTO DA PERGUNTA PENDENTE ONLINE (OS DOIS RESPONDEM COM CORREÇÃO AUTOMÁTICA DA IA)
       if (data.pendingQuestion && !data.pendingQuestion.answered) {
         // Se a pergunta foi feita pelo adversário e direcionada para mim responder
         if (data.pendingQuestion.target === myRole) {
           hideBlockOverlay();
-          openAnswerModal(data.pendingQuestion.qIndex, data.pendingQuestion.authorName || "Adversário", data.pendingQuestion.questionText, (validatedAnswerStr) => {
-            // Ao validar a resposta, escreve a resposta no Firebase
+          openAnswerModal(data.pendingQuestion.qIndex, data.pendingQuestion.authorName || "Adversário", data.pendingQuestion.questionText, (validatedAnswerStr, wasCorrected, explanation) => {
+            // Ao validar a resposta, escreve a resposta e status de correção no Firebase
             roomRef.update({
               "pendingQuestion/answered": true,
-              "pendingQuestion/answer": validatedAnswerStr
+              "pendingQuestion/answer": validatedAnswerStr,
+              "pendingQuestion/corrected": !!wasCorrected,
+              "pendingQuestion/explanation": explanation || ""
             });
           });
           return;
@@ -4414,9 +4543,10 @@
           window._handledPendingAnswer = true;
           const qText = data.pendingQuestion.questionText;
           const aStr = data.pendingQuestion.answer;
+          const wasCorrected = !!data.pendingQuestion.corrected;
 
           hideBlockOverlay();
-          showMyQuestionBanner(qText, aStr);
+          showMyQuestionBanner(qText, aStr, wasCorrected);
 
           // Salva log no Firebase e remove pendingQuestion, mantendo a vez do autor na fase de corte
           roomRef.once("value").then(snapshot => {
@@ -4428,6 +4558,7 @@
               type: "question",
               question: qText,
               answer: aStr,
+              corrected: wasCorrected,
               time: Date.now()
             });
 
@@ -4498,20 +4629,74 @@
         else if (el.cat === "transition") catClass = "cat-transition";
         else if (el.cat === "alkali") catClass = "cat-alkali";
 
+        // Dados científicos do verso
+        const naturalStr = el.q[0] ? "🌍 Natural" : "🧪 Sintético";
+        let stateStr = "🪨 Sólido";
+        if (el.q[11]) stateStr = "💧 Líquido";
+        else if (el.q[12]) stateStr = "💨 Gasoso";
+
+        const waterStr = el.q[17] ? "💥 Reage c/ água" : "🚫 Não reage";
+        const radioStr = el.q[16] ? "☢️ Radioativo" : "🛡️ Estável";
+
+        let usageArea = "Laboratório";
+        if (el.q[21]) usageArea = "🏗️ Construção civil";
+        else if (el.q[25]) usageArea = "🔋 Baterias e pilhas";
+        else if (el.q[27]) usageArea = "🍎 Alimentos / Bebidas";
+        else if (el.q[23]) usageArea = "📦 Embalagens / Cozinha";
+        else if (el.q[24]) usageArea = "🚀 Combustível / Energia";
+        else if (el.q[26]) usageArea = "💊 Farmácia / Medicina";
+        else if (el.q[29]) usageArea = "💡 Luzes e lâmpadas";
+        else if (el.q[22]) usageArea = "💻 Tecnologia / Chips";
+        else if (el.q[28]) usageArea = "🌾 Fertilizante / Sal";
+
         card.innerHTML = `
-          <div class="card-top">
-            <span class="atomic-num">${el.num}</span>
-            <span>${el.mass.toFixed(1)}</span>
+          <button type="button" class="btn-mobile-flip" title="Girar cartão" onclick="event.stopPropagation(); toggleCardFlip('${el.sym}');">🔄</button>
+          <div class="card-inner">
+            <!-- FRENTE -->
+            <div class="card-front">
+              <div class="card-top">
+                <span class="atomic-num">${el.num}</span>
+                <span>${el.mass.toFixed(1)}</span>
+              </div>
+              <div class="card-symbol">${el.sym}</div>
+              <div class="card-name">${el.name}</div>
+              <div class="category-tag ${catClass}">${CATEGORY_NAMES[el.cat] || el.cat}</div>
+              <div class="card-meta">P:${el.period} • G:${el.group}</div>
+            </div>
+
+            <!-- VERSO COM OS DADOS DO ELEMENTO -->
+            <div class="card-back">
+              <div class="card-back-header">
+                <span class="card-back-title">${el.sym} • ${el.name}</span>
+                <span class="card-back-meta">Z=${el.num}</span>
+              </div>
+              <div class="card-back-list">
+                <div class="card-back-item">${naturalStr}</div>
+                <div class="card-back-item">${stateStr}</div>
+                <div class="card-back-item">${radioStr}</div>
+                <div class="card-back-item">${waterStr}</div>
+                <div class="card-back-item" title="${usageArea}"><strong>Uso:</strong> ${usageArea}</div>
+              </div>
+              <div class="card-back-footer">
+                P:${el.period} | G:${el.group} | ${el.mass.toFixed(1)}u
+              </div>
+            </div>
           </div>
-          <div class="card-symbol">${el.sym}</div>
-          <div class="card-name">${el.name}</div>
-          <div class="category-tag ${catClass}">${CATEGORY_NAMES[el.cat] || el.cat}</div>
-          <div class="card-meta">P:${el.period} • G:${el.group}</div>
         `;
 
-        card.onclick = () => onBoardCardClicked(el);
+        card.onclick = (e) => {
+          if (e.target && e.target.classList.contains("btn-mobile-flip")) return;
+          onBoardCardClicked(el);
+        };
         grid.appendChild(card);
       });
+    }
+
+    function toggleCardFlip(sym) {
+      const card = document.getElementById(`card-${sym}`);
+      if (card) {
+        card.classList.toggle("is-flipped");
+      }
     }
 
     function onBoardCardClicked(el) {
@@ -4601,7 +4786,7 @@
     /* ==========================================================================
        BANNER ÚNICO NO TOPO DO TABULEIRO: APENAS A ÚLTIMA PERGUNTA QUE VOCÊ FEZ
        ========================================================================= */
-    function showMyQuestionBanner(questionText, answerText) {
+    function showMyQuestionBanner(questionText, answerText, wasCorrected) {
       const banner = document.getElementById("bannerMyQuestion");
       const body = document.getElementById("myQuestionBody");
       const badge = document.getElementById("myQuestionAnswerBadge");
@@ -4610,551 +4795,20 @@
       const isYes = (answerText === "SIM" || answerText === "CORRETO!");
       const isGuess = (answerText === "CORRETO!" || answerText === "INCORRETO");
 
+      let correctedNotice = "";
+      if (wasCorrected) {
+        correctedNotice = ` <span style="font-size: 10px; background: rgba(245, 158, 11, 0.2); border: 1px solid var(--accent-amber); color: #fbbf24; padding: 2px 6px; border-radius: 4px; font-weight: 700; margin-left: 6px;">🤖 Corrigido pela IA</span>`;
+      }
+
       if (isGuess) {
         badge.innerHTML = `<span class="answer-tag ${isYes ? 'ans-tag-guess-correct' : 'ans-tag-guess-wrong'}">${isYes ? '🎉 CORRETO!' : '❌ INCORRETO'}</span>`;
       } else {
-        badge.innerHTML = `<span class="answer-tag ${isYes ? 'ans-tag-yes' : 'ans-tag-no'}">${isYes ? '✓ SIM' : '✗ NÃO'}</span>`;
+        badge.innerHTML = `<span class="answer-tag ${isYes ? 'ans-tag-yes' : 'ans-tag-no'}">${isYes ? '✓ SIM' : '✗ NÃO'}</span>${correctedNotice}`;
       }
 
       banner.style.display = "flex";
     }
 
-    function hideBanner() {
-      document.getElementById("bannerMyQuestion").style.display = "none";
-    }
-
-    /* ==========================================================================
-       MODAL DE RESPOSTA DO JOGADOR (SIM / NÃO COM CORREÇÃO E EXPLICAÇÃO)
-       ========================================================================= */
-    function openAnswerModal(qIndex, authorName, customText, onFinished) {
-      const qText = (qIndex >= 0 && QUESTIONS[qIndex]) ? QUESTIONS[qIndex] : (customText || "Pergunta do adversário");
-
-      currentPendingQuestion = {
-        qIndex: (typeof qIndex === "number") ? qIndex : -1,
-        questionText: qText,
-        authorName: authorName,
-        onFinished: onFinished
-      };
-
-      document.getElementById("modalAuthorBadge").textContent = `${authorName.toUpperCase()} PERGUNTOU`;
-      document.getElementById("modalMySecretName").textContent = `${mySecret.name} (${mySecret.sym})`;
-      document.getElementById("modalQuestionText").textContent = `"${qText}"`;
-
-      document.getElementById("answerChoiceBtns").style.display = "grid";
-      document.getElementById("answerCorrectionBox").style.display = "none";
-
-      document.getElementById("answerModal").classList.remove("hidden");
-    }
-
-    function hideAnswerModal() {
-      document.getElementById("answerModal").classList.add("hidden");
-    }
-
-    function submitPlayerResponse(chosenBool) {
-      if (!currentPendingQuestion) return;
-
-      const qIndex = currentPendingQuestion.qIndex;
-      let realBool = false;
-      const isCustom = (qIndex === -1 || typeof qIndex === "undefined");
-
-      if (isCustom) {
-        realBool = evaluateCustomQuestionForElement(currentPendingQuestion.questionText, mySecret);
-      } else {
-        realBool = mySecret.q[qIndex];
-      }
-
-      if (chosenBool === realBool) {
-        hideAnswerModal();
-        const answerStr = realBool ? "SIM" : "NÃO";
-        if (currentPendingQuestion.onFinished) {
-          currentPendingQuestion.onFinished(answerStr);
-        }
-      } else {
-        document.getElementById("answerChoiceBtns").style.display = "none";
-        const curiosityBox = document.getElementById("answerCorrectionBox");
-        const explanationEl = document.getElementById("correctionExplanationText");
-
-        const realStr = realBool ? "SIM" : "NÃO";
-        const chosenStr = chosenBool ? "SIM" : "NÃO";
-        let explanation = "";
-
-        if (isCustom) {
-          explanation = `Para a pergunta <em>"${currentPendingQuestion.questionText}"</em>, as propriedades químicas do <strong>${mySecret.name} (${mySecret.sym})</strong> correspondem a <strong style="color: ${realBool ? '#38bdf8' : '#f472b6'};">${realStr}</strong> (ele possui número atômico ${mySecret.num}, massa ${mySecret.mass.toFixed(1)} u, período ${mySecret.period} e família ${mySecret.group}).`;
-        } else {
-          explanation = getScientificExplanation(mySecret, qIndex, realBool);
-        }
-
-        explanationEl.innerHTML = `
-          Você marcou <strong>${chosenStr}</strong>, mas de acordo com as propriedades do <strong>${mySecret.name} (${mySecret.sym})</strong> a resposta exata é <strong style="color: ${realBool ? '#38bdf8' : '#f472b6'};">${realStr}</strong>.<br><br>
-          ${explanation}
-        `;
-
-        curiosityBox.style.display = "block";
-      }
-    }
-
-    function confirmCorrectionAndProceed() {
-      hideAnswerModal();
-      if (!currentPendingQuestion) return;
-      const qIndex = currentPendingQuestion.qIndex;
-      let realBool = false;
-      if (qIndex === -1 || typeof qIndex === "undefined") {
-        realBool = evaluateCustomQuestionForElement(currentPendingQuestion.questionText, mySecret);
-      } else if (mySecret.q) {
-        realBool = mySecret.q[qIndex];
-      }
-      const answerStr = realBool ? "SIM" : "NÃO";
-      if (currentPendingQuestion.onFinished) {
-        currentPendingQuestion.onFinished(answerStr);
-      }
-    }
-function getScientificExplanation(el, qIdx, realBool) {
-      if (qIdx < 0) {
-        return `Sobre o <strong>${el.name} (${el.sym})</strong>: ele tem número atômico ${el.num}, massa de ${el.mass.toFixed(1)} u e fica no período ${el.period}, grupo ${el.group}.`;
-      }
-      switch (qIdx) {
-        case 0: // Ocorre naturalmente na Terra?
-          return realBool
-            ? `O <strong>${el.name}</strong> é um elemento que existe naturalmente no nosso planeta desde a formação da Terra!`
-            : `O <strong>${el.name}</strong> é um elemento tão raro ou instável na natureza que é criado por cientistas em laboratórios especializados.`;
-        case 1: // É um metal?
-          return realBool
-            ? `O <strong>${el.name}</strong> é um metal de verdade: ele tem brilho metálico, conduz calor e eletricidade com facilidade e pode ser moldado!`
-            : `O <strong>${el.name}</strong> não é um metal! Ele se comporta como ametal, semimetal ou gás nobre na Tabela Periódica.`;
-        case 2: // É um não-metal?
-          return realBool
-            ? `O <strong>${el.name}</strong> faz parte do grupo dos não-metais (ametais ou gases nobres), que costumam ser isolantes e não brilham como os metais.`
-            : `O <strong>${el.name}</strong> tem características metálicas, logo não é classificado como um não-metal.`;
-        case 3: // É um semimetal?
-          return realBool
-            ? `O <strong>${el.name} (Silício)</strong> é o clássico semimetal: ele tem propriedades que ficam no meio do caminho entre um metal e um não-metal, sendo ótimo como semicondutor!`
-            : `O <strong>${el.name}</strong> tem classificação bem definida como metal legítimo ou não-metal, não sendo um semimetal.`;
-        case 4: // É um gás nobre?
-          return realBool
-            ? `O <strong>${el.name}</strong> é um gás nobre da família 18! Ele é super estável e quase nunca se junta com outros átomos para formar reações.`
-            : `O <strong>${el.name}</strong> fica no grupo ${el.group}, portanto não é um gás nobre da família 18.`;
-        case 5: // É um metal de transição?
-          return realBool
-            ? `O <strong>${el.name}</strong> é um metal de transição (do meio da tabela periódica, grupos 3 a 12), conhecido por sua resistência e compostos coloridos!`
-            : `O <strong>${el.name}</strong> está na coluna ${el.group}, fora da faixa central dos metais de transição.`;
-        case 6: // Pertence ao grupo 1 ou 2?
-          return realBool
-            ? `O <strong>${el.name}</strong> fica bem na primeira ou segunda coluna da Tabela (grupo ${el.group}), onde estão elementos bem reativos como os metais alcalinos e alcalino-terrosos!`
-            : `O <strong>${el.name}</strong> situa-se no grupo ${el.group}, bem longe das duas primeiras colunas.`;
-        case 7: // Está no período 1, 2 ou 3?
-          return realBool
-            ? `O <strong>${el.name}</strong> está nas primeiras 3 linhas da tabela periódica (período ${el.period}), o que significa que seus elétrons ocupam até 3 camadas de energia!`
-            : `O <strong>${el.name}</strong> tem átomos maiores e fica na linha ${el.period} (período ${el.period}), além das três primeiras linhas.`;
-        case 8: // Tem mais de 20 prótons?
-          return realBool
-            ? `O <strong>${el.name}</strong> tem número atômico ${el.num}, ou seja, possui ${el.num} prótons concentrados em seu núcleo (mais que 20)!`
-            : `O <strong>${el.name}</strong> tem Z=${el.num}, logo possui até 20 prótons no seu núcleo.`;
-        case 9: // Sua massa atômica é maior que 50?
-          return realBool
-            ? `A massa atômica do <strong>${el.name}</strong> é de ${el.mass.toFixed(1)} u, sendo um átomo com massa superior a 50 unidades de massa atômica.`
-            : `A massa do <strong>${el.name}</strong> é leve: cerca de ${el.mass.toFixed(1)} u, ficando abaixo de 50.`;
-        case 10: // É sólido à temperatura ambiente?
-          return realBool
-            ? `Em um dia normal a 25°C, o <strong>${el.name}</strong> se apresenta no estado sólido, com seus átomos bem organizados e firmes.`
-            : `A 25°C o <strong>${el.name}</strong> se encontra no estado gasoso ou líquido, pois seu ponto de fusão é bem baixo.`;
-        case 11: // É líquido à temperatura ambiente?
-          return realBool
-            ? `Uma super curiosidade: o <strong>${el.name}</strong> é uma das maiores raridades da natureza, sendo um dos pouquíssimos elementos líquidos a 25°C!`
-            : `O <strong>${el.name}</strong> não é líquido na temperatura ambiente (ele fica sólido ou na forma de gás).`;
-        case 12: // É gasoso à temperatura ambiente?
-          return realBool
-            ? `O <strong>${el.name}</strong> está na forma de gás no ambiente ao nosso redor, com seus átomos livres e dispersos no ar.`
-            : `O <strong>${el.name}</strong> forma corpos condensados (sólido ou líquido) em temperatura ambiente.`;
-        case 13: // É encontrado no ar atmosférico?
-          return realBool
-            ? `O <strong>${el.name}</strong> está presente nos gases ou vapores que compõem o ar da nossa atmosfera terrestre!`
-            : `O <strong>${el.name}</strong> não fica disperso no ar que respiramos; ele fica fixado em rochas, minerais ou na água.`;
-        case 14: // É encontrado no mar ou na água do mar?
-          return realBool
-            ? `O <strong>${el.name}</strong> é encontrado no oceano, seja fazendo parte da própria molécula de água ou dissolvido como sal e mineral marinho!`
-            : `O <strong>${el.name}</strong> é praticamente insolúvel e não permanece retido na água dos mares.`;
-        case 15: // É encontrado no corpo humano?
-          return realBool
-            ? `O <strong>${el.name}</strong> faz parte da nossa vida! Ele está nos nossos tecidos, sangue, ossos ou processos vitais do corpo humano.`
-            : `O <strong>${el.name}</strong> não é um nutriente nem faz parte natural da constituição do corpo humano.`;
-        case 16: // É radioativo?
-          return realBool
-            ? `O <strong>${el.name} (Z=${el.num})</strong> tem um núcleo muito grande e instável que emite radiação natural ao longo do tempo.`
-            : `O <strong>${el.name}</strong> é estável e seguro, não sendo um elemento radioativo natural perigoso.`;
-        case 17: // Reage com água?
-          return realBool
-            ? `O <strong>${el.name}</strong> reage ativamente quando em contato com água, formando novas substâncias e liberando energia ou gases!`
-            : `O <strong>${el.name}</strong> é bem calmo com a água e não reage espontaneamente com ela no dia a dia.`;
-        case 18: // Tem propriedades magnéticas?
-          return realBool
-            ? `O <strong>${el.name}</strong> é atraído por ímãs ou interage fortemente com campos magnéticos (como o magnetismo clássico do Ferro)!`
-            : `O <strong>${el.name}</strong> não é atraído por ímãs comuns no cotidiano.`;
-        case 19: // É extraído de minérios metálicos?
-          return realBool
-            ? `O <strong>${el.name}</strong> é extraído de minas e pedreiras a partir de rochas minerais ricas nesse elemento!`
-            : `O <strong>${el.name}</strong> é obtido do ar, da água ou de fontes não-minerais.`;
-        case 20: // É um dos elementos mais abundantes na crosta terrestre?
-          return realBool
-            ? `O <strong>${el.name}</strong> é um dos 'campeões' de presença no chão da Terra, estando entre os 8 elementos mais abundantes de toda a crosta terrestre!`
-            : `O <strong>${el.name}</strong> não está no topo dos mais abundantes da crosta terrestre, sendo mais moderado ou raro.`;
-        case 21: // É usado em construção civil?
-          return realBool
-            ? `O <strong>${el.name}</strong> está nas obras e construções da nossa cidade (em vigas, cimento, fios elétricos, tijolos ou tubulações)!`
-            : `O <strong>${el.name}</strong> não costuma ser aplicado diretamente na engenharia e construção de prédios e casas.`;
-        case 22: // É usado em eletrônicos ou tecnologia?
-          return realBool
-            ? `O <strong>${el.name}</strong> é uma estrela da tecnologia moderna: está dentro de celulares, computadores, chips ou placas de circuito!`
-            : `O <strong>${el.name}</strong> tem usos mais tradicionais e não costuma ser empregado na tecnologia eletrônica.`;
-        case 23: // É usado em embalagens ou utensílios domésticos?
-          return realBool
-            ? `Você encontra o <strong>${el.name}</strong> na sua casa: em panelas, latinhas de refrigerante, talheres, garrafas ou embalagens de alimentos!`
-            : `O <strong>${el.name}</strong> não tem aplicação em embalagens ou utilidades domésticas comuns.`;
-        case 24: // É usado como combustível ou fonte de energia?
-          return realBool
-            ? `O <strong>${el.name}</strong> gera energia de peso: pode ser combustível de foguetes, comburente do fogo ou combustível de reatores nucleares!`
-            : `O <strong>${el.name}</strong> não serve como fonte direta de combustível ou geração primária de energia.`;
-        case 25: // É usado em baterias ou pilhas?
-          return realBool
-            ? `O <strong>${el.name}</strong> está presente nas pilhas e baterias recarregáveis que guardam energia para nossos aparelhos!`
-            : `O <strong>${el.name}</strong> não faz parte dos componentes comuns de pilhas ou baterias elétricas.`;
-        case 26: // É usado na medicina ou farmácia?
-          return realBool
-            ? `O <strong>${el.name}</strong> ajuda a salvar vidas: é usado em medicamentos, exames de contraste, antissépticos ou tratamentos médicos!`
-            : `O <strong>${el.name}</strong> não tem uso medicinal ou farmacêutico significativo.`;
-        case 27: // Tem alguma aplicação na indústria alimentícia?
-          return realBool
-            ? `O <strong>${el.name}</strong> participa da preparação, conservação ou embalagem de alimentos e bebidas que consumimos!`
-            : `O <strong>${el.name}</strong> não é utilizado na indústria de alimentos.`;
-        case 28: // Faz parte da composição do sal de cozinha ou fertilizantes?
-          return realBool
-            ? `O <strong>${el.name}</strong> está na mesa ou no campo: forma o sal de cozinha (NaCl) ou os adubos essenciais que fazem as plantações crescerem fortes!`
-            : `O <strong>${el.name}</strong> não integra a fórmula do sal de cozinha nem os fertilizantes agrícolas usuais.`;
-        case 29: // É usado na fabricação de lâmpadas ou iluminação?
-          return realBool
-            ? `O <strong>${el.name}</strong> faz brilhar: é usado para preencher lâmpadas especiais, letreiros iluminados ou filamentos de luz!`
-            : `O <strong>${el.name}</strong> não é utilizado na fabricação de lâmpadas ou letreiros luminosos.`;
-        default:
-          return `Propriedade confirmada pelas características químicas fascinantes do elemento <strong>${el.name}</strong>.`;
-      }
-    }
-
-    /* ==========================================================================
-       AÇÕES DO TURNO E FASE DE CORTE / PASSAR A VEZ
-       ========================================================================== */
-    function toggleGuessMode() {
-      if (!isMyTurn || gameOver) return;
-
-      isGuessMode = !isGuessMode;
-      const btn = document.getElementById("btnToggleGuess");
-      const toast = document.getElementById("guessToast");
-
-      if (isGuessMode) {
-        btn.classList.add("active");
-        document.getElementById("guessBtnText").textContent = "Cancelar Palpite";
-        toast.style.display = "block";
-      } else {
-        btn.classList.remove("active");
-        document.getElementById("guessBtnText").textContent = "Fazer Palpite";
-        toast.style.display = "none";
-      }
-      renderBoard();
-    }
-
-    function handleAskQuestionAction() {
-      if (!isMyTurn || gameOver) return;
-
-      let questionText = "";
-      let qIndex = -1;
-
-      if (questionInputMode === "predefined") {
-        qIndex = parseInt(document.getElementById("questionSelect").value);
-        if (qIndex === -1 || usedQuestionsSet.has(qIndex)) {
-          alert("Esta pergunta já foi utilizada ou não há perguntas disponíveis!");
-          return;
-        }
-        questionText = QUESTIONS[qIndex];
-        usedQuestionsSet.add(qIndex);
-        populateQuestionSelect();
-      } else {
-        const inputEl = document.getElementById("customQuestionInput");
-        const rawText = (inputEl.value || "").trim();
-        if (rawText.length < 3) {
-          alert("Por favor, escreva uma pergunta de Sim ou Não válida.");
-          inputEl.focus();
-          return;
-        }
-        questionText = rawText.endsWith("?") ? rawText : rawText + "?";
-        inputEl.value = ""; // limpa para o próximo turno
-
-        // Verifica se a pergunta digitada coincide com alguma das 30 perguntas conhecidas
-        const matchedIdx = QUESTIONS.findIndex(q => q.toLowerCase() === questionText.toLowerCase());
-        if (matchedIdx !== -1) {
-          qIndex = matchedIdx;
-          usedQuestionsSet.add(matchedIdx);
-          populateQuestionSelect();
-        }
-      }
-
-      if (gameMode === "local") {
-        let answerBool = false;
-
-        if (qIndex >= 0) {
-          answerBool = opponentSecret.q[qIndex];
-        } else {
-          // Análise inteligente da pergunta customizada para responder sobre o elemento da CPU
-          answerBool = evaluateCustomQuestionForElement(questionText, opponentSecret);
-        }
-
-        const answerStr = answerBool ? "SIM" : "NÃO";
-
-        showMyQuestionBanner(questionText, answerStr);
-
-        pushHistoryCard({
-          type: "player",
-          author: "VOCÊ",
-          question: questionText,
-          answer: answerStr
-        });
-
-        enterPassTurnPhase();
-      } else {
-        const oppRole = (myRole === "player1" ? "player2" : "player1");
-        window._handledPendingAnswer = false;
-
-        document.getElementById("btnAsk").disabled = true;
-        document.getElementById("btnToggleGuess").disabled = true;
-
-        // Envia pergunta (pronta ou customizada) para o oponente responder no modal
-        roomRef.update({
-          pendingQuestion: {
-            author: myRole,
-            authorName: (myRole === "player1" ? "Jogador 1" : "Jogador 2"),
-            target: oppRole,
-            qIndex: qIndex,
-            questionText: questionText,
-            answered: false,
-            timestamp: Date.now()
-          },
-          usedQuestions: Array.from(usedQuestionsSet)
-        });
-
-        showBlockOverlay(
-          "Pergunta Enviada!",
-          "Aguardando o adversário responder...",
-          "📨"
-        );
-      }
-    }
-
-    // Normalizador de texto para comparação sem acentos ou caracteres especiais
-    function normalizeText(str) {
-      if (!str) return "";
-      return str.toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // remove acentos
-        .replace(/[^a-z0-9\s]/g, " ")    // remove pontuação
-        .replace(/\s+/g, " ")
-        .trim();
-    }
-
-    // Avaliador inteligente para perguntas personalizadas no modo contra o computador ou online
-    function evaluateCustomQuestionForElement(text, el) {
-      if (!el || !el.q) return false;
-      const cleanT = normalizeText(text);
-      const t = " " + cleanT + " ";
-
-      // 0. Correspondência direta com uma das 30 perguntas pré-definidas
-      for (let qi = 0; qi < QUESTIONS.length; qi++) {
-        const normQ = normalizeText(QUESTIONS[qi]);
-        if (cleanT === normQ) return !!el.q[qi];
-        if (cleanT.length > 8 && normQ.length > 8 && (cleanT.includes(normQ) || normQ.includes(cleanT))) {
-          return !!el.q[qi];
-        }
-      }
-
-      // 1. Período / Linha da tabela (p 1, p1, periodo 1, linha 1, etc.)
-      const periodMatch = t.match(/\b(?:p|periodo|linha)\s*([1-7])\b/);
-      if (periodMatch) {
-        const pNum = parseInt(periodMatch[1], 10);
-        return el.period === pNum;
-      }
-      if (t.includes(" primeiro periodo ") || t.includes(" primeira linha ")) return el.period === 1;
-      if (t.includes(" segundo periodo ") || t.includes(" segunda linha ")) return el.period === 2;
-      if (t.includes(" terceiro periodo ") || t.includes(" terceira linha ")) return el.period === 3;
-      if (t.includes(" quarto periodo ") || t.includes(" quarta linha ")) return el.period === 4;
-      if (t.includes(" quinto periodo ") || t.includes(" quinta linha ")) return el.period === 5;
-      if (t.includes(" sexto periodo ") || t.includes(" sexta linha ")) return el.period === 6;
-      if (t.includes(" setimo periodo ") || t.includes(" setima linha ")) return el.period === 7;
-      if (t.includes("periodo 1 2 ou 3") || t.includes("primeiros 3 periodos") || t.includes("periodos iniciais")) return !!el.q[7];
-
-      // 2. Grupo / Família / Coluna da tabela (g 1, g1, grupo 1, familia 1, coluna 1, etc.)
-      const groupMatch = t.match(/\b(?:g|grupo|familia|coluna)\s*([1-9]|1[0-8])\b/);
-      if (groupMatch) {
-        const gNum = parseInt(groupMatch[1], 10);
-        return el.group === gNum;
-      }
-      if (t.includes("grupo 1 ou 2") || t.includes("grupos 1 ou 2") || t.includes("grupo 1 e 2") || t.includes("g 1 ou 2") || t.includes("g1 ou g2")) return !!el.q[6];
-
-      // 3. Número atômico / prótons / Z (Ex: "z = 1", "z 1", "numero atomico 8", "tem 8 protons")
-      const exactNumMatch = t.match(/\b(?:numero atomico|protons?|z)\s*(?:e|igual|de)?\s*(\d+)\b/);
-      if (exactNumMatch && !t.match(/(?:maior|mais|superior|acima|menor|menos|inferior|abaixo)/)) {
-        const val = parseInt(exactNumMatch[1], 10);
-        return el.num === val;
-      }
-      const numMatchGreater = t.match(/(?:numero atomico|protons?|z)\s*(?:maior|mais|superior|acima|passa|alem)\s*(?:que|de|a)?\s*(\d+)/);
-      if (numMatchGreater) {
-        return el.num > parseInt(numMatchGreater[1], 10);
-      }
-      const numMatchLess = t.match(/(?:numero atomico|protons?|z)\s*(?:menor|menos|inferior|abaixo)\s*(?:que|de|a)?\s*(\d+)/);
-      if (numMatchLess) {
-        return el.num < parseInt(numMatchLess[1], 10);
-      }
-      if (t.includes("mais de 20 protons") || t.includes("mais de vinte protons")) return !!el.q[8];
-
-      // 4. Massa atômica
-      const massMatchGreater = t.match(/(?:massa|peso)\s*(?:atomica)?\s*(?:maior|mais|superior|acima|passa|alem)\s*(?:que|de|a)?\s*(\d+)/);
-      if (massMatchGreater) {
-        return el.mass > parseInt(massMatchGreater[1], 10);
-      }
-      const massMatchLess = t.match(/(?:massa|peso)\s*(?:atomica)?\s*(?:menor|menos|inferior|abaixo)\s*(?:que|de|a)?\s*(\d+)/);
-      if (massMatchLess) {
-        return el.mass < parseInt(massMatchLess[1], 10);
-      }
-      if (t.includes("massa maior que 50") || t.includes("massa superior a 50")) return !!el.q[9];
-
-      // 5. Família / Categoria química específica
-      if (t.includes("gas nobre") || t.includes("gases nobres")) return !!el.q[4];
-      if (t.includes("metal de transicao") || t.includes("metais de transicao")) return !!el.q[5];
-      if (t.includes("alcalino terroso") || t.includes("alcalinos terrosos")) return el.group === 2;
-      if (t.includes("alcalino") || t.includes("alcalinos")) return el.cat === "alkali" || el.group === 1;
-      if (t.includes("halogenio") || t.includes("halogenios")) return el.group === 17;
-      if (t.includes("calcogenio") || t.includes("calcogenios")) return el.group === 16;
-      if (t.includes("semimetal") || t.includes("semimetais") || t.includes("metaloide") || t.includes("metaloides")) return !!el.q[3];
-      if (t.includes("nao metal") || t.includes("nao metais") || t.includes("ametal") || t.includes("ametais")) return !!el.q[2];
-      if (t.includes("metal") || t.includes("metais") || t.includes("metalico")) return !!el.q[1];
-
-      // 6. Estado físico à temperatura ambiente
-      if (t.includes("gasoso") || t.includes("gasosa") || t.includes("gas") || t.includes("vapor")) return !!el.q[12];
-      if (t.includes("liquido") || t.includes("fluido")) return !!el.q[11];
-      if (t.includes("solido") || t.includes("duro") || t.includes("rigido")) return !!el.q[10];
-
-      // 7. Ocorrência natural, reatividade e localização
-      if (t.includes("reage com agua") || t.includes("reacao com agua") || (t.includes("reage") && t.includes("agua"))) return !!el.q[17];
-      if (t.includes("radioativ") || t.includes("radiacao") || t.includes("nuclear") || t.includes("emite radiacao")) return !!el.q[16];
-      if (t.includes("ima") || t.includes("magnet") || t.includes("atrai") || t.includes("ferromagnet")) return !!el.q[18];
-      if (t.includes("natural") || t.includes("natureza") || t.includes("terra")) return !!el.q[0];
-      if (t.includes("ar") || t.includes("atmosfera") || t.includes("respiramos")) return !!el.q[13];
-      if (t.includes("mar") || t.includes("oceano") || t.includes("salmoura") || t.includes("agua do mar")) return !!el.q[14];
-      if (t.includes("corpo humano") || t.includes("organismo") || t.includes("celula") || t.includes("sangue") || t.includes("osso")) return !!el.q[15];
-      if (t.includes("crosta") || t.includes("abundante") || t.includes("solo") || t.includes("rocha")) return !!el.q[20];
-      if (t.includes("minerio") || t.includes("mina") || t.includes("jazida")) return !!el.q[19];
-
-      // 8. Usos e Aplicações
-      if (t.includes("construcao") || t.includes("civil") || t.includes("predio") || t.includes("ponte") || t.includes("estrutura") || t.includes("viga")) return !!el.q[21];
-      if (t.includes("eletron") || t.includes("computador") || t.includes("chip") || t.includes("celular") || t.includes("tecnologia") || t.includes("circuito")) return !!el.q[22];
-      if (t.includes("embalagem") || t.includes("panela") || t.includes("lata") || t.includes("utensilio") || t.includes("cozinha")) return !!el.q[23];
-      if (t.includes("combustivel") || t.includes("foguete") || t.includes("energia") || t.includes("queima") || t.includes("inflamavel")) return !!el.q[24];
-      if (t.includes("bateria") || t.includes("pilha") || t.includes("acumulador")) return !!el.q[25];
-      if (t.includes("medic") || t.includes("remedio") || t.includes("hospital") || t.includes("farmacia") || t.includes("saude")) return !!el.q[26];
-      if (t.includes("comida") || t.includes("alimento") || t.includes("alimentici") || t.includes("comer") || t.includes("bebida")) return !!el.q[27];
-      if (t.includes("sal de cozinha") || t.includes("fertilizante") || t.includes("adubo") || t.includes("planta") || t.includes("lavoura")) return !!el.q[28];
-      if (t.includes("lampada") || t.includes("ilumin") || t.includes("luz") || t.includes("neon") || t.includes("brilho")) return !!el.q[29];
-
-      // 9. Menção direta ao nome ou símbolo (Ex: "é o hidrogênio?", "é H?", "h")
-      const normName = normalizeText(el.name);
-      const words = cleanT.split(" ");
-      if (cleanT.includes(normName)) return true;
-      if (words.includes(el.sym.toLowerCase())) return true;
-
-      return false;
-    }
-
-    function submitGuessAction(guessedElement) {
-      isGuessMode = false;
-      document.getElementById("btnToggleGuess").classList.remove("active");
-      document.getElementById("guessBtnText").textContent = "Fazer Palpite";
-      document.getElementById("guessToast").style.display = "none";
-
-      if (gameMode === "local") {
-        const isCorrect = (guessedElement.sym === opponentSecret.sym);
-
-        showMyQuestionBanner(`Palpite: ${guessedElement.name} (${guessedElement.sym})`, isCorrect ? "CORRETO!" : "INCORRETO");
-
-        pushHistoryCard({
-          type: "player",
-          author: "VOCÊ",
-          isGuess: true,
-          guessElement: `${guessedElement.name} (${guessedElement.sym})`,
-          answer: isCorrect ? "CORRETO!" : "INCORRETO"
-        });
-
-        if (isCorrect) {
-          setTimeout(() => {
-            showVictoryScreen(true, mySecret, opponentSecret, opponentSecret, "Você");
-          }, 1200);
-        } else {
-          // Se o jogador errou o palpite tendo apenas 1 elemento restante sem riscar (ou seja, 29 riscados)
-          const remainingElements = ELEMENTS.length - Object.keys(elementEliminatedRound).length;
-          if (remainingElements <= 1) {
-            resetPlayerBoardOnWrongGuess();
-          }
-          enterPassTurnPhase();
-        }
-      } else {
-        roomRef.once("value").then(snapshot => {
-          const val = snapshot.val();
-          const oppRole = (myRole === "player1" ? "player2" : "player1");
-          const oppSym = val[oppRole] ? val[oppRole].element : null;
-          const isCorrect = (guessedElement.sym === oppSym);
-
-          showMyQuestionBanner(`Palpite: ${guessedElement.name} (${guessedElement.sym})`, isCorrect ? "CORRETO!" : "INCORRETO");
-
-          pushHistoryCard({
-            type: "player",
-            author: "VOCÊ",
-            isGuess: true,
-            guessElement: `${guessedElement.name} (${guessedElement.sym})`,
-            answer: isCorrect ? "CORRETO!" : "INCORRETO"
-          });
-
-          if (isCorrect) {
-            const currentLogs = val.log ? [...val.log] : [];
-            currentLogs.push({
-              player: myRole,
-              playerName: (myRole === "player1" ? "Jogador 1" : "Jogador 2"),
-              type: "guess",
-              guessElement: `${guessedElement.name} (${guessedElement.sym})`,
-              answer: "CORRETO!",
-              time: Date.now()
-            });
-
-            roomRef.update({
-              log: currentLogs,
-              guess: { player: myRole, element: guessedElement.sym, correct: true },
-              status: "finished"
-            });
-          } else {
-            // Se o jogador errou o palpite tendo apenas 1 elemento restante sem riscar (ou seja, 29 riscados)
-            const remainingElements = ELEMENTS.length - Object.keys(elementEliminatedRound).length;
-            if (remainingElements <= 1) {
-              resetPlayerBoardOnWrongGuess();
-            }
-
-            window._pendingOnlineLog = {
-              player: myRole,
-              playerName: (myRole === "player1" ? "Jogador 1" : "Jogador 2"),
-              type: "guess",
-              guessElement: `${guessedElement.name} (${guessedElement.sym})`,
-              answer: "INCORRETO",
-              time: Date.now()
-            };
-            enterPassTurnPhase();
-          }
-        });
-      }
-    }
-
-    // FASE DE CORTE / PASSAR A VEZ
     function enterPassTurnPhase() {
       document.getElementById("actionControlsStandard").style.display = "none";
       document.getElementById("actionControlsPassTurn").style.display = "flex";
