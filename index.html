@@ -2916,13 +2916,12 @@
         <div class="secret-display">
           <div class="secret-info-wrap">
             <span style="font-size: 13px; color: var(--text-muted);">Seu Elemento:</span>
-            <div class="secret-chip" style="cursor:pointer;" onclick="openElementDataModal(mySecret ? mySecret.sym : null)" title="Clique para ver dados científicos do elemento">
+            <div class="secret-chip" style="cursor:pointer;" onclick="openElementDataModal(mySecret ? mySecret.sym : null)" title="Clique para abrir a ficha com os dados científicos deste elemento">
               <span id="mySecretSym">?</span>
               <span id="mySecretName" style="font-weight: normal; color: #fff;"></span>
             </div>
           </div>
           <div class="secret-actions">
-            <button type="button" class="btn-action btn-secret-dados" style="padding: 4px 10px; font-size: 11px; background: rgba(56, 189, 248, 0.15); border: 1px solid var(--accent-cyan); color: var(--accent-cyan);" onclick="openElementDataModal(mySecret ? mySecret.sym : null)" title="Dados científicos, ocorrência, estado, radioatividade e aplicações">📋 Dados</button>
             <button type="button" class="btn-action btn-secret-unmark" style="padding: 4px 10px; font-size: 11px; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--accent-red); color: #fca5a5;" onclick="unmarkAllElements()" title="Restaura todos os elementos eliminados nesta partida">🔄 Desriscar Todos</button>
           </div>
         </div>
@@ -6680,7 +6679,7 @@
         title.textContent = "Parabéns, Você Venceu!";
         subtitle.textContent = "Você desvendou o elemento químico secreto com dedução precisa de cientista!";
         if (profImg) {
-          profImg.src = "professor-marista.png";
+          profImg.src = "professor-vitoria.png";
           profImg.className = "result-professor-img win";
           profImg.alt = "Professor Satisfeito com sua Vitória";
         }
