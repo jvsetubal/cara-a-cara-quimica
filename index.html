@@ -3129,10 +3129,13 @@
         </div>
       </div>
 
-      <!-- Rodapé do Modal com Botão Confortável de Fechar -->
-      <div style="text-align: right; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 14px;">
+      <!-- Rodapé do Modal com Botão Confortável de Fechar e Reset -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 14px;">
+        <button type="button" class="btn-action" style="padding: 8px 14px; font-size: 11.5px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;" onclick="if(confirm('Tem certeza de que deseja apagar todos os dados de jogo, partidas, estatísticas, conquistas e elementos desbloqueados?')) clearAllGameData(true);" title="Apaga todas as estatísticas, conquistas e elementos salvos">
+          🗑️ Zerar Todos os Dados
+        </button>
         <button class="btn-action btn-primary" style="padding: 9px 24px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;" onclick="closeStatsModal()">
-          <span>✓</span> Concluir & Fechar
+          ✓ Concluir Leitura
         </button>
       </div>
     </div>
@@ -3764,10 +3767,63 @@
     const STORAGE_KEY_PLAYER_UID = "cara_quimica_uid_v1";
 
     // Reset forçado de estatísticas e progresso de versões anteriores (v1) para todos os dispositivos
+    // Reset geral de todos os dados do jogo (nicknames, estatísticas, conquistas, elementos, tutoriais)
     try {
-      localStorage.removeItem("cara_quimica_stats_v1");
-      localStorage.removeItem("cara_quimica_seen_elements_v1");
+      [
+        "cara_quimica_stats_v1",
+        "cara_quimica_stats_v2",
+        "cara_quimica_seen_elements_v1",
+        "cara_quimica_seen_elements_v2",
+        "cara_quimica_nickname_v1",
+        "cara_quimica_uid_v1",
+        "cara_quimica_tutorial_seen_v1",
+        "cara_quimica_achievements_v1"
+      ].forEach(k => {
+        try { localStorage.removeItem(k); } catch (err) {}
+      });
     } catch (e) {}
+
+    /* ==========================================================================
+       LIMPEZA GERAL DE DADOS (RESET DE CONQUISTAS, ESTATÍSTICAS E ELEMENTOS)
+       ========================================================================== */
+    function clearAllGameData(notify = true) {
+      try {
+        const keysToRemove = [
+          STORAGE_KEY_TUTORIAL_SEEN,
+          STORAGE_KEY_MATCH_STATS,
+          STORAGE_KEY_SEEN_ELEMENTS,
+          STORAGE_KEY_PLAYER_NICKNAME,
+          STORAGE_KEY_PLAYER_UID,
+          STORAGE_KEY_ACHIEVEMENTS,
+          "cara_quimica_stats_v1",
+          "cara_quimica_stats_v2",
+          "cara_quimica_seen_elements_v1",
+          "cara_quimica_seen_elements_v2"
+        ];
+        keysToRemove.forEach(k => {
+          try { localStorage.removeItem(k); } catch (e) {}
+        });
+
+        // Limpa campos de input de nickname
+        const nickInput = document.getElementById("inputNickname");
+        if (nickInput) nickInput.value = "";
+
+        // Atualiza badges da interface
+        updateStatsHeaderBadge();
+
+        if (notify) {
+          alert("🧹 Todos os dados, estatísticas, elementos descobertos, conquistas e nicknames foram zerados com sucesso!");
+          const statsModal = document.getElementById("statsModal");
+          if (statsModal && !statsModal.classList.contains("hidden")) {
+            openStatsModal();
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao limpar dados:", err);
+      }
+    }
+    window.clearAllGameData = clearAllGameData;
+
 
     function getPlayerUid() {
       try {
