@@ -3128,7 +3128,7 @@
           <div class="tutorial-professor-frame">
             <img src="professor-marista.png" alt="Professor Marista Explicando" class="tutorial-professor-img" />
           </div>
-          <div class="tutorial-professor-badge">👨‍🏫 Professor Marista</div>
+          <div class="tutorial-professor-badge">👨‍🏫 Professor Mauro</div>
         </div>
 
         <div class="tutorial-speech-bubble">
@@ -3139,7 +3139,7 @@
               "Bem-vindo ao laboratório! No início do jogo, você e seu oponente escolhem em segredo um dos <strong>40 elementos da Tabela Periódica</strong>. O objetivo é deduzir o elemento secreto do adversário antes que ele adivinhe o seu!"
             </div>
             <div class="tutorial-step-highlight">
-              💡 <em>Dica do Professor:</em> Fique de olho no número atômico, estado físico e nas aplicações do cotidiano!
+              💡 <em>Dica do Professor Mauro:</em> Fique de olho no número atômico, estado físico e nas aplicações do cotidiano!
             </div>
           </div>
 
@@ -3150,7 +3150,7 @@
               "Na sua vez, formule uma pergunta de <strong>Sim ou Não</strong> escolhendo entre as opções científicas ou <strong>digitando sua própria pergunta</strong>! Quando o adversário perguntar algo sobre o seu elemento, responda com sinceridade científica."
             </div>
             <div class="tutorial-step-highlight">
-              ✨ <em>Curiosidade Científica:</em> Se tiver qualquer dúvida, clique no botão <strong>📋 Dados</strong> para ver a ficha completa do elemento!
+              ✨ <em>Curiosidade Científica:</em> Se tiver qualquer dúvida, clique em cima do <strong>seu elemento secreto</strong> ou passe o mouse sobre as cartas para girar e ver a ficha com todas as propriedades!
             </div>
           </div>
 
@@ -3891,20 +3891,11 @@
     const STORAGE_KEY_PLAYER_UID = "cara_quimica_uid_v1";
 
     // Reset forçado de estatísticas e progresso de versões anteriores (v1) para todos os dispositivos
-    // Reset geral de todos os dados do jogo (nicknames, estatísticas, conquistas, elementos, tutoriais)
+        // Armazenamento e persistência das estatísticas, conquistas e histórico do jogador
     try {
-      [
-        "cara_quimica_stats_v1",
-        "cara_quimica_stats_v2",
-        "cara_quimica_seen_elements_v1",
-        "cara_quimica_seen_elements_v2",
-        "cara_quimica_nickname_v1",
-        "cara_quimica_uid_v1",
-        "cara_quimica_tutorial_seen_v1",
-        "cara_quimica_achievements_v1"
-      ].forEach(k => {
-        try { localStorage.removeItem(k); } catch (err) {}
-      });
+      // Limpeza apenas de versões obsoletas da v1 se existirem
+      localStorage.removeItem("cara_quimica_stats_v1");
+      localStorage.removeItem("cara_quimica_seen_elements_v1");
     } catch (e) {}
 
     /* ==========================================================================
